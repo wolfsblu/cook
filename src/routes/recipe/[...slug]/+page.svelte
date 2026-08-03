@@ -14,6 +14,7 @@
 	image={data.image}
 	stepImages={data.stepImages}
 	scale={data.scale}
+	baseServings={data.baseServings}
 	slug={data.slug}
 	inShoppingList={data.inShoppingList}
 	listedScale={data.listedScale}

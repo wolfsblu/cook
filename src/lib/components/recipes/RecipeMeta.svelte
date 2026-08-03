@@ -19,9 +19,15 @@
 	 */
 	interface Props {
 		recipe: RecipeDisplay;
+		/**
+		 * What the file declares. `recipe.servings` carries the scale the parser
+		 * applied, which would make this row disagree with its own label as soon
+		 * as anyone touched the servings control.
+		 */
+		baseServings: number | null;
 	}
 
-	const { recipe }: Props = $props();
+	const { recipe, baseServings }: Props = $props();
 
 	function minutes(value: number): string {
 		if (value < 60) return `${value} min`;
@@ -74,7 +80,7 @@
 	});
 
 	const hasAnything = $derived(
-		Boolean(recipe.servings) ||
+		Boolean(baseServings) ||
 			times.length > 0 ||
 			Boolean(recipe.course) ||
 			Boolean(recipe.author?.name) ||
@@ -87,7 +93,7 @@
 		<h2 class="text-fg mb-3 text-lg font-semibold">Details</h2>
 
 		<dl class="divide-border divide-y text-sm">
-			{#if recipe.servings}
+			{#if baseServings}
 				<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
 					<!-- "Recipe serves", not "Serves": the control above shows the
 					     scaled figure, this is what the file itself declares. -->
@@ -95,7 +101,7 @@
 						<UsersIcon class="size-4 shrink-0" />
 						Recipe serves
 					</dt>
-					<dd class="text-fg font-medium tabular-nums">{recipe.servings}</dd>
+					<dd class="text-fg font-medium tabular-nums">{baseServings}</dd>
 				</div>
 			{/if}
 

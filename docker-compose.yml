@@ -1,0 +1,59 @@
+# Recipe browser with an image pipeline in front of it.
+#
+#   browser -> caddy (cache) -> imgproxy -> recipe directory (read-only)
+#                            -> app      -> recipe directory (read-write)
+#
+# Only Caddy publishes a port. imgproxy and the app are reachable only from
+# inside the compose network, so the signed-URL check cannot be sidestepped by
+# talking to imgproxy directly.
+
+services:
+  app:
+    image: ghcr.io/${GITHUB_REPOSITORY:-lukaswolfsberger/cooklang-web}:latest
+    restart: unless-stopped
+    environment:
+      RECIPE_PATH: /recipes
+      RECIPE_INDEX_TTL_MS: '30000'
+      # Same-origin, because Caddy fronts both the app and imgproxy.
+      IMGPROXY_BASE_URL: /img
+      IMGPROXY_KEY: ${IMGPROXY_KEY:?set IMGPROXY_KEY in .env}
+      IMGPROXY_SALT: ${IMGPROXY_SALT:?set IMGPROXY_SALT in .env}
+    volumes:
+      # Read-write: the shopping list and pantry are files in here.
+      - ${RECIPES_HOST_PATH:?set RECIPES_HOST_PATH in .env}:/recipes
+    expose:
+      - '3000'
+
+  imgproxy:
+    image: darthsim/imgproxy:v3
+    restart: unless-stopped
+    environment:
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /recipes
+      IMGPROXY_KEY: ${IMGPROXY_KEY}
+      IMGPROXY_SALT: ${IMGPROXY_SALT}
+      IMGPROXY_QUALITY: '80'
+      # Refuse absurdly large sources rather than trying to decode them.
+      IMGPROXY_MAX_SRC_RESOLUTION: '50'
+      IMGPROXY_TTL: '2592000'
+    volumes:
+      # Read-only: imgproxy has no business writing to the recipe library.
+      - ${RECIPES_HOST_PATH}:/recipes:ro
+    expose:
+      - '8080'
+
+  caddy:
+    build: ./deploy/caddy
+    restart: unless-stopped
+    ports:
+      - '${HTTP_PORT:-8080}:8080'
+    volumes:
+      - ./deploy/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-cache:/var/cache/caddy
+      - caddy-data:/data
+    depends_on:
+      - app
+      - imgproxy
+
+volumes:
+  caddy-cache:
+  caddy-data:

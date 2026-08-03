@@ -1,0 +1,29 @@
+{
+	# The cache handler has to run before rewrites so it sees the original path.
+	order cache before rewrite
+
+	cache {
+		# Derivative URLs carry the source file's mtime, so a cached entry is
+		# only ever valid for bytes that cannot change. Keeping them a month is
+		# safe; replacing an image produces a different URL.
+		ttl 720h
+		badger {
+			path /var/cache/caddy
+		}
+	}
+}
+
+:8080 {
+	encode zstd gzip
+
+	# Resized images. Only this prefix is cached; the app is not.
+	handle_path /img/* {
+		cache
+		header Cache-Control "public, max-age=31536000, immutable"
+		reverse_proxy imgproxy:8080
+	}
+
+	handle {
+		reverse_proxy app:3000
+	}
+}

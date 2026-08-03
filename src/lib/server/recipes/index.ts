@@ -302,7 +302,7 @@ async function buildIndex(): Promise<RecipeIndex> {
 	const imageStats = await mapLimit(walked.images, STAT_CONCURRENCY, async (relPath) => {
 		try {
 			const stat = await fs.stat(path.join(root, relPath));
-			return { relPath, mtimeMs: stat.mtimeMs };
+			return { relPath, mtimeMs: Math.round(stat.mtimeMs) };
 		} catch {
 			return null;
 		}
@@ -328,13 +328,17 @@ async function buildIndex(): Promise<RecipeIndex> {
 			return null;
 		}
 
+		// Rounded because mtimeMs is fractional on some filesystems and this
+		// value ends up in image URLs as a cache buster.
+		const mtimeMs = Math.round(stat.mtimeMs);
+
 		// Re-read and re-parse only when the file actually changed.
 		let cached = fileCache.get(relPath);
-		if (!cached || cached.mtimeMs !== stat.mtimeMs || cached.size !== stat.size) {
+		if (!cached || cached.mtimeMs !== mtimeMs || cached.size !== stat.size) {
 			try {
 				const source = await fs.readFile(absPath, 'utf8');
 				cached = {
-					mtimeMs: stat.mtimeMs,
+					mtimeMs,
 					size: stat.size,
 					parsed: parseRecipe(source, relPath)
 				};
@@ -354,7 +358,7 @@ async function buildIndex(): Promise<RecipeIndex> {
 			...cached.parsed,
 			image: imageBucket?.main ?? null,
 			stepImages: imageBucket?.steps ?? {},
-			mtimeMs: stat.mtimeMs,
+			mtimeMs,
 			size: stat.size
 		} satisfies RecipeEntry;
 	});

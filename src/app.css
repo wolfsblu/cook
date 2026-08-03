@@ -7,13 +7,6 @@
    the system preference. */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/* Guards hover-only affordances. A touch browser has no hover, and fakes `:hover`
-   by leaving it stuck on whatever was last tapped, so anything hidden until hover
-   has to be shown outright there instead. The condition deliberately matches the
-   one Tailwind's own `hover:` carries, so a collapse and its `group-hover:`
-   counterpart can never disagree about which devices they apply to. */
-@custom-variant can-hover (@media (hover: hover));
-
 @layer base {
 	html {
 		background-color: var(--color-canvas);

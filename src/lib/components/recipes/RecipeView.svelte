@@ -9,7 +9,7 @@
 	import RecipeIngredients from './RecipeIngredients.svelte';
 	import RecipeCookware from './RecipeCookware.svelte';
 	import RecipeSteps from './RecipeSteps.svelte';
-	import RecipeActions from './RecipeActions.svelte';
+	import RecipeActionBar from './RecipeActionBar.svelte';
 	import CookControlBar from './cook/CookControlBar.svelte';
 	import ActiveTimersPanel from './cook/ActiveTimersPanel.svelte';
 
@@ -231,15 +231,24 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<!-- The bottom padding is unconditional now: outside cook mode the floating
-     actions overlap the tail of the content just as the cook bar does, and they
-     are the taller of the two once the dial is open. -->
-<article class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 pb-32 sm:px-6">
+<article class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 {cookMode ? 'pb-28' : ''}">
 	<RecipeHeader {recipe} {image} />
+
+	{#if !cookMode}
+		<RecipeActionBar
+			{slug}
+			{scale}
+			baseServings={recipe.servings}
+			{inShoppingList}
+			{listedScale}
+			onscale={handleScale}
+			onstartcooking={toggleCookMode}
+		/>
+	{/if}
 
 	<div class="grid gap-6 lg:grid-cols-[300px_1fr]">
 		<aside class="space-y-4 lg:sticky lg:top-20 lg:self-start">
-			<RecipeMeta {recipe} {scale} onscale={handleScale} />
+			<RecipeMeta {recipe} />
 			<RecipeIngredients
 				ingredients={recipe.ingredients}
 				hoveredIndex={hoveredIngredientIndex}
@@ -273,8 +282,6 @@
 	</div>
 </article>
 
-<!-- One or the other owns the bottom of the screen: in cook mode the control bar
-     carries Finish, so the actions would only be a second way out. -->
 {#if cookMode}
 	<CookControlBar
 		{currentStep}
@@ -285,8 +292,6 @@
 		onfinish={finishCooking}
 		ontoggletimers={toggleTimersPanel}
 	/>
-{:else}
-	<RecipeActions {slug} {scale} {inShoppingList} {listedScale} onstartcooking={toggleCookMode} />
 {/if}
 
 {#if showTimersPanel}

@@ -44,12 +44,10 @@
 		return stepParam ? parseInt(stepParam, 10) || 1 : 1;
 	}
 
-	let currentStep = $state(getStepFromURL());
-
-	// Sync currentStep with URL when URL changes
-	$effect(() => {
-		currentStep = getStepFromURL();
-	});
+	// The URL is the source of truth for the current step -- every navigation
+	// control writes to it -- so this derives from the URL rather than keeping a
+	// copy in $state and syncing it back with an effect.
+	const currentStep = $derived(getStepFromURL());
 
 	// Ephemeral hover state
 	let hoveredIngredientIndex = $state<number | null>(null);
@@ -90,22 +88,21 @@
 	// Get current step's ingredient/cookware indices
 	const currentStepData = $derived(allSteps[currentStep - 1]);
 
-	const currentStepIngredientIndices = $derived(() => {
+	// $derived.by, not $derived(() => ...). The latter stores the function
+	// itself, so every call site rebuilt the Set from scratch instead of
+	// reading a memoized value.
+	const currentStepIngredientIndices = $derived.by(() => {
 		if (!cookMode || !currentStepData) return null;
-		const indices = new Set<number>();
-		for (const item of currentStepData.items) {
-			if (item.type === 'ingredient') indices.add(item.index);
-		}
-		return indices;
+		return new Set(
+			currentStepData.items.filter((item) => item.type === 'ingredient').map((item) => item.index)
+		);
 	});
 
-	const currentStepCookwareIndices = $derived(() => {
+	const currentStepCookwareIndices = $derived.by(() => {
 		if (!cookMode || !currentStepData) return null;
-		const indices = new Set<number>();
-		for (const item of currentStepData.items) {
-			if (item.type === 'cookware') indices.add(item.index);
-		}
-		return indices;
+		return new Set(
+			currentStepData.items.filter((item) => item.type === 'cookware').map((item) => item.index)
+		);
 	});
 
 	// Active timer indices (for highlighting in steps)
@@ -255,13 +252,13 @@
 			<RecipeIngredients
 				ingredients={recipe.ingredients}
 				hoveredIndex={hoveredIngredientIndex}
-				activeIndices={currentStepIngredientIndices()}
+				activeIndices={currentStepIngredientIndices}
 				onhover={(i) => (hoveredIngredientIndex = i)}
 			/>
 			<RecipeCookware
 				cookware={recipe.cookware}
 				hoveredIndex={hoveredCookwareIndex}
-				activeIndices={currentStepCookwareIndices()}
+				activeIndices={currentStepCookwareIndices}
 				onhover={(i) => (hoveredCookwareIndex = i)}
 			/>
 		</aside>
@@ -274,8 +271,8 @@
 				{currentStep}
 				{hoveredIngredientIndex}
 				{hoveredCookwareIndex}
-				activeIngredientIndices={currentStepIngredientIndices()}
-				activeCookwareIndices={currentStepCookwareIndices()}
+				activeIngredientIndices={currentStepIngredientIndices}
+				activeCookwareIndices={currentStepCookwareIndices}
 				{activeTimerIndices}
 				onhoverIngredient={(i) => (hoveredIngredientIndex = i)}
 				onhoverCookware={(i) => (hoveredCookwareIndex = i)}

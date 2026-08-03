@@ -26,7 +26,9 @@
 >
 	<div class="min-w-0 flex-1">
 		<div class="flex flex-wrap items-center gap-2">
-			<span class="truncate font-medium">{item.name}</span>
+			<!-- Capitalized for display only; the file keeps the name as written,
+			     because the CLI matches it against ingredient names verbatim. -->
+			<span class="truncate font-medium capitalize">{item.name}</span>
 
 			{#if item.runningLow && !item.disabled}
 				<Badge tone="warn">Low</Badge>

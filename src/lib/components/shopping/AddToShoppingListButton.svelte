@@ -46,7 +46,10 @@
 	<form method="POST" action="/shopping?/add" use:enhance={submit}>
 		<input type="hidden" name="slug" value={slug} />
 		<input type="hidden" name="scale" value={scale} />
-		<Button type="submit" variant={scaleDiffers ? 'primary' : 'soft'}>
+		<!-- Soft even in the update state: "Start cooking" is the page's primary
+		     action, and two filled buttons side by side compete rather than
+		     guide. The changed label and icon carry the signal. -->
+		<Button type="submit" variant="soft">
 			{#if scaleDiffers}
 				<CheckIcon class="size-4" />
 				Update to {scale}×

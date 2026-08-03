@@ -1,20 +1,32 @@
 # cooklang-web
 
-A web server for managing [Cooklang](https://cooklang.org/) recipes, shopping lists, and pantries. Built with SvelteKit and designed to help you organize your cooking workflow. Cooklang is a markup language for cooking recipes that allows you to define ingredients, cookware, and timers in a structured format.
+A self-hosted web app for a [Cooklang](https://cooklang.org/) recipe library.
+Point it at a directory of `.cook` files — typically a NAS share — and it gives
+you a browsable, searchable collection, a combined shopping list, and a pantry
+whose contents are deducted from that list.
 
-![Main page screenshot](screenshots/list.png)
+![The recipe list](screenshots/list.png)
+
+|                                       |                                                |
+| ------------------------------------- | ---------------------------------------------- |
+| ![A recipe](screenshots/recipe.png)   | ![The shopping list](screenshots/shopping.png) |
+| ![The pantry](screenshots/pantry.png) | ![Dark theme](screenshots/list-dark.png)       |
 
 ### Features
 
-- **Recipe Management**: Store, view, and manage your cooklang recipes
-- **Shopping Lists**: Generate and manage shopping lists from your recipes
-- **Pantry Tracking**: Keep track of ingredients you have on hand
+- **Recipes** — browse, search and filter a directory of `.cook` files,
+  including subdirectories, with a cook mode that walks you through the steps
+  and runs timers.
+- **Shopping lists** — combine recipes at any scale, with quantities merged
+  across them and grouped by supermarket aisle.
+- **Pantry** — track what you have in stock; anything listed is subtracted
+  from the shopping list automatically.
 
 ## Tech Stack
 
 - **Framework**: [SvelteKit](https://kit.svelte.dev/) - Full-stack web framework
-- **UI Components**: [Skeleton UI](https://www.skeleton.dev/) - Tailwind-based component library
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) v4
+- **UI**: [Tailwind CSS](https://tailwindcss.com/) v4 with a custom token layer, and
+  [Bits UI](https://bits-ui.com/) for accessible primitives
 - **Icons**: [Lucide Svelte](https://lucide.dev/)
 - **Recipe parsing**: [@cooklang/cooklang](https://github.com/cooklang/cooklang-rs) (WASM) for display, plus the [cook CLI](https://github.com/cooklang/cookcli) for shopping lists
 - **Images**: [imgproxy](https://imgproxy.net/) behind a caching [Caddy](https://caddyserver.com/)
@@ -24,8 +36,10 @@ A web server for managing [Cooklang](https://cooklang.org/) recipes, shopping li
 
 ### Prerequisites
 
-- Node.js (LTS version recommended)
-- npm, pnpm, or yarn
+- Node.js 24
+- npm
+- Optionally the [cook CLI](https://github.com/cooklang/cookcli), which is only
+  needed for shopping lists
 
 ### Setup
 
@@ -43,19 +57,26 @@ Start the development server with hot module replacement:
 npm run dev
 ```
 
-### Type Checking
+Point it at your own recipes with `RECIPE_PATH`; it defaults to the sample
+`recipes/` directory in this repo.
 
-Run TypeScript and Svelte type checking:
+### Checks
 
-```sh
-npm run check
-```
-
-Or run in watch mode:
+Typecheck, lint and test in one go — this is what CI runs:
 
 ```sh
-npm run check:watch
+npm run verify
 ```
+
+Individually: `npm run check`, `npm run lint`, `npm test`. `npm run format`
+applies Prettier.
+
+Tests cover the logic that is easy to get quietly wrong: the pantry file
+parser (which round-trips a real `pantry.conf` byte for byte, comments
+included), URL slugs, imgproxy URL signing, quantity formatting, aisle
+ordering and pantry unit comparisons. Behaviour that depends on the `cook`
+binary is checked by `scripts/smoke-cook.mjs` against the real thing rather
+than mocked.
 
 ## Building
 
@@ -112,6 +133,9 @@ compose network, so it cannot be used as an open image resizer.
 | `IMGPROXY_BASE_URL`   | _unset_     | Where imgproxy is mounted. Unset serves originals from the app |
 | `IMGPROXY_KEY`        | _unset_     | Hex URL-signing key                                            |
 | `IMGPROXY_SALT`       | _unset_     | Hex URL-signing salt                                           |
+| `PROTOCOL_HEADER`     | _unset_     | Proxy header carrying the scheme; set by compose               |
+| `HOST_HEADER`         | _unset_     | Proxy header carrying the host; set by compose                 |
+| `ORIGIN`              | _unset_     | Public URL, if your proxy sends neither of the above           |
 
 Both `IMGPROXY_KEY` and `IMGPROXY_SALT` must be set alongside
 `IMGPROXY_BASE_URL`; if they are not, the app logs a warning and falls back to

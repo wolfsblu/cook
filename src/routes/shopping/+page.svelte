@@ -61,9 +61,9 @@
 						{/each}
 					</ul>
 					<p class="mt-2 text-sm">
-						Stock is only subtracted when its unit matches the recipe's, so 2 kg of flour will not
+						Stock is only subtracted when its unit matches the one the recipe uses; kilograms do not
 						cover a recipe measured in grams. Edit the entry in your
-						<a href="/pantry" class="link">pantry</a> to use the same unit.
+						<a href="/pantry" class="link">pantry</a> to match, and it will be deducted.
 					</p>
 				</div>
 			</Card>

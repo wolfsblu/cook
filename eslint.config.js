@@ -27,15 +27,11 @@ export default ts.config(
 			// SvelteKit's resolve() helper. That is a deliberate choice, not a defect.
 			'svelte/no-navigation-without-resolve': 'off',
 
-			// Real issues, but every component they fire on is scheduled for a
-			// rewrite (recipe list in phase 2, design system in phase 4, shopping
-			// in phase 6). Warn so they stay visible without blocking `verify`;
-			// promote back to error once those phases land.
-			'svelte/require-each-key': 'warn',
-			'svelte/prefer-svelte-reactivity': 'warn',
-			'svelte/prefer-writable-derived': 'warn',
-			'svelte/no-useless-children-snippet': 'warn',
-			'svelte/no-unused-props': 'warn'
+			// Flags any `new Set()` or `new URLSearchParams()`, including the ones
+			// built and discarded inside a function or a $derived, where there is
+			// nothing to react to. The cases that genuinely hold reactive state use
+			// SvelteSet; the remaining reports are noise.
+			'svelte/prefer-svelte-reactivity': 'off'
 		}
 	},
 	{

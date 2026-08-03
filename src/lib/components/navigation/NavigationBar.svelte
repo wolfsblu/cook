@@ -16,8 +16,13 @@
 	}
 </script>
 
+<!--
+	Sticky, not just the last row of the layout grid: without this the tab bar
+	sits at the end of the content and scrolls out of reach on any page taller
+	than the viewport, which is every page on a phone.
+-->
 <nav
-	class="border-border bg-surface/90 border-t backdrop-blur-md md:hidden"
+	class="border-border bg-surface/90 sticky bottom-0 z-30 border-t backdrop-blur-md md:hidden"
 	style="padding-bottom: env(safe-area-inset-bottom)"
 	aria-label="Main"
 >

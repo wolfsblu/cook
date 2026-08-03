@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { ListChecksIcon } from '@lucide/svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import type { ShoppingListDisplay } from '$lib/types/shopping-list';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
@@ -18,7 +19,9 @@
 	 * about one shopping trip, not something worth writing to the recipe
 	 * directory, and it resets whenever the generated list changes.
 	 */
-	let checked = $state(new Set<string>());
+	// SvelteSet rather than Set: this is reactive state, and a plain Set would
+	// not notify on mutation, forcing a wholesale replacement on every tick.
+	const checked = new SvelteSet<string>();
 	let checkedFor = $state('');
 
 	const listSignature = $derived(
@@ -30,15 +33,13 @@
 		// a different set of items.
 		if (checkedFor !== listSignature) {
 			checkedFor = listSignature;
-			checked = new Set();
+			checked.clear();
 		}
 	});
 
 	function toggle(key: string) {
-		const next = new Set(checked);
-		if (next.has(key)) next.delete(key);
-		else next.add(key);
-		checked = next;
+		if (checked.has(key)) checked.delete(key);
+		else checked.add(key);
 	}
 </script>
 

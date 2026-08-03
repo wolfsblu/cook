@@ -6,17 +6,26 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import Select from '$lib/components/ui/Select.svelte';
+	import RecipePagination from './RecipePagination.svelte';
 
 	/**
-	 * Sort controls and the filter trigger. Search used to live here too; it now
-	 * sits in the app header, where it is reachable from every page.
+	 * Sort controls, the filter trigger and the page links. Search used to live
+	 * here too; it now sits in the app header, where it is reachable from every
+	 * page, and this row sits directly beneath it.
 	 */
 	type Props = {
 		isDrawerOpen: boolean;
 		activeFilterCount?: number;
+		pageNumber?: number;
+		totalPages?: number;
 	};
 
-	let { isDrawerOpen = $bindable(), activeFilterCount = 0 }: Props = $props();
+	let {
+		isDrawerOpen = $bindable(),
+		activeFilterCount = 0,
+		pageNumber = 1,
+		totalPages = 1
+	}: Props = $props();
 
 	const SORT_OPTIONS = [
 		{ value: 'name', label: 'Name' },
@@ -31,6 +40,10 @@
 
 	function updateUrl() {
 		const params = new URLSearchParams(page.url.searchParams);
+
+		// Re-sorting reshuffles the whole list, so page 3 of the old order means
+		// nothing in the new one.
+		params.delete('page');
 
 		if (sortField !== 'name') params.set('sort', sortField);
 		else params.delete('sort');
@@ -57,7 +70,9 @@
 		{/if}
 	</Button>
 
-	<div class="ml-auto flex items-center gap-2">
+	<div class="ml-auto flex flex-wrap items-center gap-2">
+		<RecipePagination {pageNumber} {totalPages} />
+
 		<Select
 			bind:value={sortField}
 			options={SORT_OPTIONS}

@@ -23,7 +23,11 @@ export function parseFilterParams(searchParams: URLSearchParams): FilterState {
 }
 
 /**
- * Build URL from filter state
+ * Build URL from filter state.
+ *
+ * Deliberately built from an empty URLSearchParams: applying filters produces a
+ * different result set, so dropping `page` and landing back on the first page
+ * is the wanted behaviour rather than an oversight.
  */
 export function buildFilterUrl(
 	query: string,

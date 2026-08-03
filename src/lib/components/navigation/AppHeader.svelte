@@ -25,6 +25,11 @@
 
 	function navigate(value: string) {
 		const params = new URLSearchParams(page.url.searchParams);
+
+		// A new search is a new result set; carrying the old page number over
+		// would land on page 4 of something that now has two pages.
+		params.delete('page');
+
 		if (value) params.set('q', value);
 		else params.delete('q');
 

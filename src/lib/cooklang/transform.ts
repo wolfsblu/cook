@@ -2,40 +2,39 @@
  * Transform Cook CLI shopping list JSON output to display-ready format
  */
 
+import type { CookCLIShoppingList, CookCLIQuantity, CookCLIQuantityValue } from './types.js';
 import type {
-	CookCLIShoppingList,
-	CookCLIQuantity,
-	CookCLIQuantityValue
-} from './types.js';
-import type { ShoppingListDisplay, ShoppingListCategory, ShoppingListItem } from '$lib/types/shopping-list.js';
+	ShoppingListDisplay,
+	ShoppingListCategory,
+	ShoppingListItem
+} from '$lib/types/shopping-list.js';
 
 /**
  * Format a single quantity value to a display string
  */
+function formatNumber(num: number): string {
+	return num % 1 === 0 ? num.toString() : num.toFixed(2).replace(/\.?0+$/, '');
+}
+
+function withUnit(text: string, unit: string | null): string {
+	return unit ? `${text} ${unit}` : text;
+}
+
 function formatQuantityValue(value: CookCLIQuantityValue, unit: string | null): string {
-	if (value.type === 'number') {
-		// The value structure is nested: { type: 'regular', value: 1.0 }
-		const numValue = value.value as { type: string; value: number };
-		const num = numValue.value;
-		const formatted = num % 1 === 0 ? num.toString() : num.toFixed(2).replace(/\.?0+$/, '');
-		return unit ? `${formatted} ${unit}` : formatted;
+	switch (value.type) {
+		case 'number':
+			return withUnit(formatNumber(value.value.value), unit);
+		case 'range':
+			return withUnit(
+				`${formatNumber(value.value.from.value)}-${formatNumber(value.value.to.value)}`,
+				unit
+			);
+		case 'text':
+			// Unquantified amounts such as "pinch" or "drizzle" carry no unit.
+			return value.value;
+		default:
+			return '';
 	}
-
-	if (value.type === 'range') {
-		// Range structure: { from: { type: 'regular', value: N }, to: { type: 'regular', value: M } }
-		const rangeValue = value.value as { from: { type: string; value: number }; to: { type: string; value: number } };
-		const from = rangeValue.from.value;
-		const to = rangeValue.to.value;
-		const fromStr = from % 1 === 0 ? from.toString() : from.toFixed(2).replace(/\.?0+$/, '');
-		const toStr = to % 1 === 0 ? to.toString() : to.toFixed(2).replace(/\.?0+$/, '');
-		return unit ? `${fromStr}-${toStr} ${unit}` : `${fromStr}-${toStr}`;
-	}
-
-	if (value.type === 'text') {
-		return value.value as string;
-	}
-
-	return '';
 }
 
 /**

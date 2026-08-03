@@ -25,10 +25,10 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <aside
-	class="w-80 max-w-full bg-surface-100-900 {borderClass} border-surface-200-800 shadow-xl flex flex-col h-full"
+	class="bg-surface-100-900 w-80 max-w-full {borderClass} border-surface-200-800 flex h-full flex-col shadow-xl"
 >
 	<!-- Header -->
-	<header class="flex items-center justify-between p-4 border-b border-surface-200-800">
+	<header class="border-surface-200-800 flex items-center justify-between border-b p-4">
 		<h2 class="h5">{title}</h2>
 		<div class="flex items-center gap-2">
 			{#if headerActions}
@@ -46,13 +46,13 @@
 	</header>
 
 	<!-- Content -->
-	<div class="flex-1 overflow-y-auto p-4 space-y-3">
+	<div class="flex-1 space-y-3 overflow-y-auto p-4">
 		{@render children()}
 	</div>
 
 	<!-- Footer -->
 	{#if footer}
-		<footer class="p-4 border-t border-surface-200-800">
+		<footer class="border-surface-200-800 border-t p-4">
 			{@render footer()}
 		</footer>
 	{/if}

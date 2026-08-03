@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ShoppingCart, Check, X, Plus } from '@lucide/svelte';
+	import { ShoppingCart, X } from '@lucide/svelte';
 	import { shoppingListStore } from '$lib/stores/shopping-list.svelte';
 	import type { RecipeSelection } from '$lib/types/shopping-list';
 
@@ -10,7 +10,7 @@
 	let { recipe }: Props = $props();
 
 	let inList = $derived(shoppingListStore.hasRecipe(recipe.slug));
-	
+
 	async function add() {
 		await shoppingListStore.addRecipe({
 			...recipe,
@@ -29,8 +29,7 @@
 		Remove from Shopping List
 	</button>
 {:else}
-	<button
-		class="btn preset-filled-primary-500" onclick={add}>
+	<button class="btn preset-filled-primary-500" onclick={add}>
 		<ShoppingCart size={20} />
 		Add to Shopping List
 	</button>

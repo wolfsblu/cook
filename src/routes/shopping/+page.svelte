@@ -21,17 +21,14 @@
 	}
 </script>
 
-<div class="container mx-auto px-4 py-6 space-y-6">
-
+<div class="container mx-auto space-y-6 px-4 py-6">
 	{#if shoppingListStore.isLoading}
 		<div class="card preset-outlined-surface-200-800 p-8 text-center">
 			<p class="text-surface-600-400">Loading shopping list...</p>
 		</div>
 	{:else if shoppingListStore.recipes.length === 0}
-		<div class="card preset-outlined-surface-200-800 p-8 text-center space-y-2">
-			<p class="text-surface-600-400">
-				No recipes in your shopping list.
-			</p>
+		<div class="card preset-outlined-surface-200-800 space-y-2 p-8 text-center">
+			<p class="text-surface-600-400">No recipes in your shopping list.</p>
 			<p>
 				<a href="/" class="anchor">Browse recipes</a>
 				and click "Add to Shopping List" to get started.

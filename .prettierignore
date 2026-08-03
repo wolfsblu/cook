@@ -1,6 +1,8 @@
-node_modules
-.svelte-kit
-build
-package-lock.json
-recipes
-screenshots
+# Leading slashes matter: an unanchored pattern like `recipes` would also match
+# src/lib/components/recipes and src/routes/api/recipes.
+/node_modules
+/.svelte-kit
+/build
+/package-lock.json
+/recipes
+/screenshots

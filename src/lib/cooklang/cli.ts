@@ -90,10 +90,7 @@ async function executeCookCLI(args: string[]): Promise<CookCLIShoppingList> {
 		const timeout = setTimeout(() => {
 			proc.kill('SIGTERM');
 			reject(
-				new CookCLIError(
-					`Cook CLI execution timed out after ${config.COOK_CLI_TIMEOUT}ms`,
-					stderr
-				)
+				new CookCLIError(`Cook CLI execution timed out after ${config.COOK_CLI_TIMEOUT}ms`, stderr)
 			);
 		}, config.COOK_CLI_TIMEOUT);
 
@@ -102,13 +99,7 @@ async function executeCookCLI(args: string[]): Promise<CookCLIShoppingList> {
 			clearTimeout(timeout);
 
 			if (code !== 0) {
-				reject(
-					new CookCLIError(
-						`Cook CLI exited with code ${code}`,
-						stderr,
-						code || undefined
-					)
-				);
+				reject(new CookCLIError(`Cook CLI exited with code ${code}`, stderr, code || undefined));
 				return;
 			}
 
@@ -203,10 +194,7 @@ export async function searchRecipes(query: string, basePath: string): Promise<st
 		const timeout = setTimeout(() => {
 			proc.kill('SIGTERM');
 			reject(
-				new CookCLIError(
-					`Cook CLI search timed out after ${config.COOK_CLI_TIMEOUT}ms`,
-					stderr
-				)
+				new CookCLIError(`Cook CLI search timed out after ${config.COOK_CLI_TIMEOUT}ms`, stderr)
 			);
 		}, config.COOK_CLI_TIMEOUT);
 
@@ -216,11 +204,7 @@ export async function searchRecipes(query: string, basePath: string): Promise<st
 
 			if (code !== 0) {
 				reject(
-					new CookCLIError(
-						`Cook CLI search exited with code ${code}`,
-						stderr,
-						code || undefined
-					)
+					new CookCLIError(`Cook CLI search exited with code ${code}`, stderr, code || undefined)
 				);
 				return;
 			}

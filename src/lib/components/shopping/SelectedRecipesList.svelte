@@ -30,7 +30,7 @@
 	}
 </script>
 
-<div class="card preset-outlined-surface-200-800 p-4 space-y-4">
+<div class="card preset-outlined-surface-200-800 space-y-4 p-4">
 	<div class="flex items-center justify-between">
 		<h2 class="h4">Recipes ({recipes.length})</h2>
 		{#if onclear && recipes.length > 0}
@@ -42,27 +42,27 @@
 	</div>
 
 	{#if recipes.length === 0}
-		<p class="text-surface-600-400 text-sm text-center py-4">
+		<p class="text-surface-600-400 py-4 text-center text-sm">
 			No recipes selected. Add recipes from recipe pages.
 		</p>
 	{:else}
 		<ul class="space-y-2">
 			{#each recipes as recipe (recipe.slug)}
 				<li class="flex items-center justify-between gap-2">
-					<div class="flex-1 min-w-0">
-						<a href="/{recipe.slug}" class="anchor text-sm truncate block">
+					<div class="min-w-0 flex-1">
+						<a href="/{recipe.slug}" class="anchor block truncate text-sm">
 							{recipe.title}
 						</a>
 						{#if recipe.servings}
-							<span class="text-xs text-surface-600-400">
+							<span class="text-surface-600-400 text-xs">
 								{recipe.servings} servings
 							</span>
 						{/if}
 					</div>
 
-					<div class="flex items-center gap-2 shrink-0">
+					<div class="flex shrink-0 items-center gap-2">
 						<!-- Scale control -->
-						<div class="flex items-center gap-1 preset-outlined-surface-200-800 rounded px-2 py-1">
+						<div class="preset-outlined-surface-200-800 flex items-center gap-1 rounded px-2 py-1">
 							<button
 								class="btn-icon btn-icon-sm hover:preset-tonal-surface"
 								onclick={() => decrementScale(recipe)}
@@ -71,7 +71,7 @@
 							>
 								<Minus size={14} />
 							</button>
-							<span class="text-sm font-mono min-w-[2.5rem] text-center">
+							<span class="min-w-[2.5rem] text-center font-mono text-sm">
 								{recipe.scale}×
 							</span>
 							<button

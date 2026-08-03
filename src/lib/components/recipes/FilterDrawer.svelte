@@ -92,22 +92,22 @@
 </script>
 
 <!-- Grid-based drawer layout - fills parent container -->
-<div class="grid grid-cols-[auto_1fr] h-full">
+<div class="grid h-full grid-cols-[auto_1fr]">
 	<Sidebar title="Filter Recipes" position="left" onclose={close}>
 		{#snippet children()}
 			<div class="space-y-6">
 				<!-- Tags Filter -->
 				{#if availableTags.length > 0}
 					<div>
-						<h3 class="font-medium mb-2">Tags</h3>
-						<TagCombobox bind:selectedTags availableTags={availableTags} />
+						<h3 class="mb-2 font-medium">Tags</h3>
+						<TagCombobox bind:selectedTags {availableTags} />
 					</div>
 				{/if}
 
 				<!-- Course Filter -->
 				{#if availableCourses.length > 0}
 					<div>
-						<h3 class="font-medium mb-2">Course</h3>
+						<h3 class="mb-2 font-medium">Course</h3>
 						<select bind:value={selectedCourse} class="input w-full">
 							<option value={null}>Any course</option>
 							{#each availableCourses as course}
@@ -119,9 +119,9 @@
 
 				<!-- Time Range Filter -->
 				<div>
-					<div class="flex items-center justify-between mb-3">
+					<div class="mb-3 flex items-center justify-between">
 						<h3 class="font-medium">Cooking Time</h3>
-						<span class="text-sm text-surface-600-400">
+						<span class="text-surface-600-400 text-sm">
 							{timeRange[0]}–{timeRange[1] >= TIME_MAX ? '180+' : timeRange[1]} min
 						</span>
 					</div>
@@ -148,9 +148,9 @@
 
 				<!-- Servings Range Filter -->
 				<div>
-					<div class="flex items-center justify-between mb-3">
+					<div class="mb-3 flex items-center justify-between">
 						<h3 class="font-medium">Servings</h3>
-						<span class="text-sm text-surface-600-400">
+						<span class="text-surface-600-400 text-sm">
 							{servingsRange[0]}–{servingsRange[1] >= SERVINGS_MAX ? '12+' : servingsRange[1]}
 						</span>
 					</div>
@@ -190,10 +190,6 @@
 	</Sidebar>
 
 	<!-- Backdrop -->
-	<button
-		type="button"
-		class="bg-black/50"
-		onclick={close}
-		aria-label="Close filter drawer"
+	<button type="button" class="bg-black/50" onclick={close} aria-label="Close filter drawer"
 	></button>
 </div>

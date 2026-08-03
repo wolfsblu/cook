@@ -4,12 +4,29 @@
  */
 
 /**
- * Quantity value types from Cook CLI
+ * A numeric literal from Cook CLI. Numbers are always wrapped in their own
+ * tagged object, so a plain quantity nests two levels deep:
+ *
+ *   {"unit":"ml","value":{"type":"number","value":{"type":"regular","value":500.0}}}
+ *
+ * Shape verified against cookcli 0.19.3 output for the bundled recipes.
  */
-export interface CookCLIQuantityValue {
-	type: 'number' | 'text' | 'range';
-	value: number | string | { from: number; to: number };
+export interface CookCLINumber {
+	type: 'regular' | 'fraction';
+	value: number;
 }
+
+/**
+ * Quantity value types from Cook CLI.
+ *
+ * A discriminated union rather than a widened `value` field: the previous
+ * shape forced `as` casts at every read site, and those casts disagreed with
+ * the declaration they were casting away from.
+ */
+export type CookCLIQuantityValue =
+	| { type: 'number'; value: CookCLINumber }
+	| { type: 'range'; value: { from: CookCLINumber; to: CookCLINumber } }
+	| { type: 'text'; value: string };
 
 /**
  * Quantity structure from Cook CLI
@@ -24,7 +41,11 @@ export interface CookCLIQuantity {
  */
 export interface CookCLIShoppingItem {
 	name: string;
-	quantity: CookCLIQuantity[]; // Can have multiple quantities (e.g., 2 cups and 1 tsp)
+	/**
+	 * Can hold multiple quantities (e.g. "2 cups and 1 tsp"), and is empty for
+	 * ingredients written without one (`@lemon`, `@black pepper{}`).
+	 */
+	quantity: CookCLIQuantity[];
 }
 
 /**

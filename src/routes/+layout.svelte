@@ -2,15 +2,9 @@
 	import { page } from '$app/state';
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
-    import NavigationBar from '$lib/components/navigation/NavigationBar.svelte';
-	import { modeStore } from '$lib/stores/theme.svelte';
+	import NavigationBar from '$lib/components/navigation/NavigationBar.svelte';
 
 	let { children } = $props();
-
-	// Initialize mode (accessing the store ensures it's initialized)
-	$effect(() => {
-		modeStore.current;
-	});
 
 	// Check if we're in cook mode
 	const isCookMode = $derived(page.url.searchParams.has('cook'));
@@ -27,7 +21,7 @@
 		</main>
 	</div>
 {:else}
-	<div class="h-dvh grid grid-rows-[1fr_auto]">
+	<div class="grid h-dvh grid-rows-[1fr_auto]">
 		<main class="overflow-auto">
 			{@render children()}
 		</main>

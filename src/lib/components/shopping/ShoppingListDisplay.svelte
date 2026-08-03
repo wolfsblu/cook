@@ -10,25 +10,23 @@
 	let { shoppingList, loading = false }: Props = $props();
 </script>
 
-<div class="card preset-outlined-surface-200-800 p-4 space-y-4">
+<div class="card preset-outlined-surface-200-800 space-y-4 p-4">
 	{#if loading}
 		<!-- Loading state -->
 		<div class="flex items-center justify-center py-12">
-			<Loader2 size={32} class="animate-spin text-primary-500" />
-			<span class="ml-3 text-surface-600-400">Generating shopping list...</span>
+			<Loader2 size={32} class="text-primary-500 animate-spin" />
+			<span class="text-surface-600-400 ml-3">Generating shopping list...</span>
 		</div>
 	{:else if !shoppingList}
 		<!-- Empty state -->
-		<div class="text-center py-12">
-			<p class="text-surface-600-400">
-				Add recipes to generate a shopping list
-			</p>
+		<div class="py-12 text-center">
+			<p class="text-surface-600-400">Add recipes to generate a shopping list</p>
 		</div>
 	{:else}
 		<!-- Shopping list header -->
 		<div class="flex items-start justify-between">
 			<h1 class="h4">Shopping List</h1>
-			<div class="text-sm text-surface-600-400">
+			<div class="text-surface-600-400 text-sm">
 				{shoppingList.totalItems} items from {shoppingList.recipeCount}
 				{shoppingList.recipeCount === 1 ? 'recipe' : 'recipes'}
 			</div>
@@ -40,11 +38,11 @@
 				<div class="space-y-3">
 					<h3 class="h4 flex items-center gap-2">
 						{category.displayName}
-						<span class="text-xs preset-tonal-surface px-2 py-1 rounded">
+						<span class="preset-tonal-surface rounded px-2 py-1 text-xs">
 							{category.items.length}
 						</span>
 					</h3>
-					<ul class="space-y-2 ml-2">
+					<ul class="ml-2 space-y-2">
 						{#each category.items as item (item.name)}
 							<li class="flex items-baseline gap-2">
 								<span class="text-primary-500">•</span>
@@ -62,10 +60,8 @@
 		</div>
 
 		{#if shoppingList.categories.length === 0}
-			<div class="text-center py-8">
-				<p class="text-surface-600-400">
-					No ingredients found in selected recipes
-				</p>
+			<div class="py-8 text-center">
+				<p class="text-surface-600-400">No ingredients found in selected recipes</p>
 			</div>
 		{/if}
 	{/if}

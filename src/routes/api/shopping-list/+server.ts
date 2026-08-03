@@ -8,7 +8,7 @@ import type { RequestHandler } from './$types';
 import { loadShoppingListFile } from '$lib/cooklang/persistence.js';
 import { generateShoppingList, CookCLIError } from '$lib/cooklang/cli.js';
 import { transformShoppingList } from '$lib/cooklang/transform.js';
-import type { ShoppingListDisplay, RecipeSelection } from '$lib/types/shopping-list.js';
+import type { ShoppingListDisplay } from '$lib/types/shopping-list.js';
 
 export const GET: RequestHandler = async () => {
 	try {
@@ -38,11 +38,12 @@ export const GET: RequestHandler = async () => {
 	} catch (err) {
 		console.error('Shopping list generation failed:', err);
 
-		// Handle Cook CLI specific errors
+		// Handle Cook CLI specific errors. App.Error only carries `message`, so
+		// fold the CLI's stderr into it rather than inventing a field.
 		if (err instanceof CookCLIError) {
+			const detail = err.stderr?.trim();
 			throw error(500, {
-				message: `Failed to generate shopping list: ${err.message}`,
-				details: err.stderr
+				message: `Failed to generate shopping list: ${err.message}${detail ? ` (${detail})` : ''}`
 			});
 		}
 

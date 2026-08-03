@@ -1,5 +1,9 @@
 <script lang="ts">
-	import { Combobox, type ComboboxRootProps, useListCollection } from '@skeletonlabs/skeleton-svelte';
+	import {
+		Combobox,
+		type ComboboxRootProps,
+		useListCollection
+	} from '@skeletonlabs/skeleton-svelte';
 
 	interface Props {
 		selectedTags: string[];
@@ -74,16 +78,16 @@
 
 	<!-- Display selected tags (first 5) + "X more" indicator -->
 	{#if visibleSelectedTags.length > 0}
-		<div class="flex flex-wrap gap-2 mt-2">
+		<div class="mt-2 flex flex-wrap gap-2">
 			{#each visibleSelectedTags as tag (tag)}
 				<button
 					type="button"
 					onclick={() => {
 						selectedTags = selectedTags.filter((t) => t !== tag);
 					}}
-					class="chip preset-filled-primary-500 flex items-center gap-1 group"
+					class="chip preset-filled-primary-500 group flex items-center gap-1"
 				>
-					<span class="truncate max-w-[150px]">{tag}</span>
+					<span class="max-w-[150px] truncate">{tag}</span>
 					<span class="opacity-70 group-hover:opacity-100">×</span>
 				</button>
 			{/each}

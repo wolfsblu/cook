@@ -71,11 +71,12 @@ export function sortRecipes(recipes: any[], field: string, order: 'asc' | 'desc'
 		let compareValue = 0;
 
 		switch (field) {
-			case 'name':
+			case 'name': {
 				const aTitle = a.parsed.title || a.filename || '';
 				const bTitle = b.parsed.title || b.filename || '';
 				compareValue = aTitle.localeCompare(bTitle);
 				break;
+			}
 			case 'time':
 				compareValue = getRecipeTime(a) - getRecipeTime(b);
 				break;

@@ -1,23 +1,29 @@
 <script lang="ts">
-	import type { RecipeDisplay } from '$lib/types/recipe';
+	import type { ImageRef, RecipeDisplay } from '$lib/types/recipe';
 
 	interface Props {
 		recipe: RecipeDisplay;
+		image?: ImageRef | null;
 	}
 
-	const { recipe }: Props = $props();
+	const { recipe, image = null }: Props = $props();
 
 	let imgError = $state(false);
-	const showImage = $derived(recipe.imageUrl && !imgError);
+	const showImage = $derived(image !== null && !imgError);
 </script>
 
 <header class="space-y-4">
-	{#if showImage}
+	{#if showImage && image}
 		<img
-			src={recipe.imageUrl}
+			src={image.src}
+			srcset={image.srcset}
+			width={image.width}
+			height={image.height}
 			onerror={() => (imgError = true)}
+			fetchpriority="high"
+			decoding="async"
 			alt={recipe.title ?? 'Recipe'}
-			class="aspect-[3/1] w-full rounded-lg object-cover"
+			class="aspect-[21/9] w-full rounded-lg object-cover"
 		/>
 	{/if}
 
@@ -29,7 +35,7 @@
 
 	{#if recipe.tags.length > 0}
 		<div class="flex flex-wrap gap-2">
-			{#each recipe.tags as tag}
+			{#each recipe.tags as tag (tag)}
 				<span class="badge preset-filled-surface-200-800">{tag}</span>
 			{/each}
 		</div>

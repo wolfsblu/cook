@@ -8,6 +8,7 @@ import type { RequestHandler } from './$types';
 import { loadShoppingListFile } from '$lib/cooklang/persistence.js';
 import { generateShoppingList, CookCLIError } from '$lib/cooklang/cli.js';
 import { transformShoppingList } from '$lib/cooklang/transform.js';
+import { getIndex } from '$lib/server/recipes/index.js';
 import type { ShoppingListDisplay } from '$lib/types/shopping-list.js';
 
 export const GET: RequestHandler = async () => {
@@ -23,10 +24,20 @@ export const GET: RequestHandler = async () => {
 			});
 		}
 
-		// Generate shopping list via Cook CLI
-		const cliOutput = await generateShoppingList(
-			recipes.map((r) => ({ slug: r.slug, scale: r.scale }))
-		);
+		// Selections are stored by slug; the CLI needs the path on disk. Resolving
+		// through the index also drops recipes that have since been deleted,
+		// rather than failing the whole list on one missing file.
+		const index = await getIndex();
+		const resolved = recipes.flatMap((selection) => {
+			const entry = index.bySlug.get(selection.slug);
+			if (!entry) {
+				console.warn(`Shopping list references unknown recipe "${selection.slug}", skipping`);
+				return [];
+			}
+			return [{ relPath: entry.relPath, scale: selection.scale }];
+		});
+
+		const cliOutput = await generateShoppingList(resolved);
 
 		// Transform to display format
 		const shoppingList: ShoppingListDisplay = transformShoppingList(cliOutput, recipes.length);

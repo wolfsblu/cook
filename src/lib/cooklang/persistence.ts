@@ -5,7 +5,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { getRecipePath } from './cli.js';
+import { config } from '$lib/server/config.js';
 import type { RecipeSelection } from '$lib/types/shopping-list.js';
 
 /**
@@ -19,7 +19,7 @@ interface ShoppingListFile {
  * Get the absolute path to the shopping list file
  */
 function getShoppingListPath(): string {
-	const recipePath = getRecipePath();
+	const recipePath = config.RECIPE_PATH;
 	return path.join(recipePath, '.shopping-list.json');
 }
 

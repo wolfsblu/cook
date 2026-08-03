@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { page } from '$app/stores';
+	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
-	import type { RecipeDisplay, StepDisplay, ActiveTimer } from '$lib/types/recipe';
+	import type { ImageRef, RecipeDisplay, StepDisplay, ActiveTimer } from '$lib/types/recipe';
 	import { CookingPotIcon } from '@lucide/svelte';
 	import { parseTimerQuantity } from '$lib/utils/timer';
 	import { playAlertSound } from '$lib/utils/audio';
@@ -18,26 +18,28 @@
 		recipe: RecipeDisplay;
 		scale: number;
 		slug: string;
+		image?: ImageRef | null;
+		stepImages?: Record<string, ImageRef | null>;
 	}
 
-	const { recipe, scale, slug }: Props = $props();
+	const { recipe, scale, slug, image = null, stepImages = {} }: Props = $props();
 
 	// RecipeDisplay leaves title and servings loose (a recipe may omit both, and
 	// cooklang allows a free-text servings value). RecipeSelection wants a
 	// definite title and a numeric servings, so narrow here rather than casting.
 	const selection = $derived({
 		slug,
-		title: recipe.title || slug.replace(/\.cook$/, ''),
+		title: recipe.title || slug,
 		servings: typeof recipe.servings === 'number' ? recipe.servings : undefined,
-		imageUrl: recipe.imageUrl
+		imageUrl: image?.src
 	});
 
 	// URL-derived state
-	const cookMode = $derived($page.url.searchParams.has('cook'));
+	const cookMode = $derived(page.url.searchParams.has('cook'));
 
 	// Get step from URL or default to 1
 	function getStepFromURL(): number {
-		const stepParam = $page.url.searchParams.get('step');
+		const stepParam = page.url.searchParams.get('step');
 		return stepParam ? parseInt(stepParam, 10) || 1 : 1;
 	}
 
@@ -118,13 +120,13 @@
 	);
 
 	function handleScale(newScale: number) {
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		url.searchParams.set('scale', String(newScale));
 		goto(url.toString(), { replaceState: true });
 	}
 
 	function toggleCookMode() {
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		if (cookMode) {
 			url.searchParams.delete('cook');
 			url.searchParams.delete('step');
@@ -139,7 +141,7 @@
 	}
 
 	function goToStep(step: number) {
-		const url = new URL($page.url);
+		const url = new URL(page.url);
 		url.searchParams.set('step', String(step));
 		goto(url.toString(), { replaceState: true, noScroll: true });
 	}
@@ -234,7 +236,7 @@
 <svelte:window onkeydown={handleKeydown} />
 
 <article class="mx-auto max-w-4xl space-y-6 p-4 {cookMode ? 'pb-24' : ''}">
-	<RecipeHeader {recipe} />
+	<RecipeHeader {recipe} {image} />
 
 	<div class="flex flex-wrap items-center justify-between gap-4">
 		<ServingsControl baseServings={recipe.servings} {scale} onscale={handleScale} />
@@ -266,6 +268,7 @@
 		<main>
 			<RecipeSteps
 				sections={recipe.sections}
+				{stepImages}
 				{cookMode}
 				{currentStep}
 				{hoveredIngredientIndex}

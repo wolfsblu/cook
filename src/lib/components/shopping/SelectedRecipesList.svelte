@@ -50,7 +50,7 @@
 			{#each recipes as recipe (recipe.slug)}
 				<li class="flex items-center justify-between gap-2">
 					<div class="min-w-0 flex-1">
-						<a href="/{recipe.slug}" class="anchor block truncate text-sm">
+						<a href="/recipe/{recipe.slug}" class="anchor block truncate text-sm">
 							{recipe.title}
 						</a>
 						{#if recipe.servings}

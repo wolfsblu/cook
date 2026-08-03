@@ -2,21 +2,21 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
 	import { Slider } from '@skeletonlabs/skeleton-svelte';
-	import { getAvailableTags, getAvailableCourses } from '$lib/utils/recipe-filters';
 	import { parseFilterParams, buildFilterUrl } from '$lib/utils/url-params';
 	import Sidebar from '$lib/components/ui/Sidebar.svelte';
 	import TagCombobox from '$lib/components/recipes/TagCombobox.svelte';
 
 	type Props = {
 		isOpen: boolean;
-		allRecipes: any[];
+		/** Facets come from the whole library, not the filtered view. */
+		allTags: string[];
+		allCourses: string[];
 	};
 
-	let { isOpen = $bindable(), allRecipes }: Props = $props();
+	let { isOpen = $bindable(), allTags, allCourses }: Props = $props();
 
-	// Get available filter options
-	const availableTags = $derived(getAvailableTags(allRecipes));
-	const availableCourses = $derived(getAvailableCourses(allRecipes));
+	const availableTags = $derived(allTags);
+	const availableCourses = $derived(allCourses);
 
 	// Initialize filter state from URL
 	const urlFilters = $derived(parseFilterParams(page.url.searchParams));
@@ -110,7 +110,7 @@
 						<h3 class="mb-2 font-medium">Course</h3>
 						<select bind:value={selectedCourse} class="input w-full">
 							<option value={null}>Any course</option>
-							{#each availableCourses as course}
+							{#each availableCourses as course (course)}
 								<option value={course}>{course}</option>
 							{/each}
 						</select>

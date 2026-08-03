@@ -50,7 +50,7 @@
 			<div
 				class="grid grid-cols-1 gap-6 px-3 pb-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
 			>
-				{#each displayRecipes as recipe (recipe.filename)}
+				{#each displayRecipes as recipe (recipe.slug)}
 					<RecipeCard {recipe} />
 				{/each}
 			</div>
@@ -60,7 +60,11 @@
 	<!-- Filter drawer overlay - same grid cell, higher z-index -->
 	{#if isDrawerOpen}
 		<div class="z-40 col-start-1 row-start-1">
-			<FilterDrawer bind:isOpen={isDrawerOpen} allRecipes={data.recipes} />
+			<FilterDrawer
+				bind:isOpen={isDrawerOpen}
+				allTags={data.allTags}
+				allCourses={data.allCourses}
+			/>
 		</div>
 	{/if}
 </div>

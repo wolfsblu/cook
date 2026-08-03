@@ -78,6 +78,32 @@ export interface RecipeDisplay {
 	imageUrl?: string;
 }
 
+/** An image reference as sent to the client. */
+export interface ImageRef {
+	src: string;
+	srcset?: string;
+	width: number;
+	height: number;
+}
+
+/**
+ * Everything the recipe grid renders, and nothing else.
+ *
+ * The list page used to ship the raw source, the rendered HTML, the parser
+ * report and the full parse tree for every recipe, while RecipeCard read four
+ * fields. This type is the contract that keeps that from coming back.
+ */
+export interface RecipeCardModel {
+	slug: string;
+	href: string;
+	title: string;
+	tags: string[];
+	course: string | null;
+	servings: number | null;
+	timeMinutes: number | null;
+	image: ImageRef | null;
+}
+
 export interface ActiveTimer {
 	id: string;
 	name: string;

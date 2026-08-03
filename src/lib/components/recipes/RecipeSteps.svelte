@@ -1,11 +1,16 @@
 <script lang="ts">
-	import type { SectionDisplay, StepDisplay } from '$lib/types/recipe';
+	import type { ImageRef, SectionDisplay, StepDisplay } from '$lib/types/recipe';
 	import InlineIngredient from './inline/InlineIngredient.svelte';
 	import InlineCookware from './inline/InlineCookware.svelte';
 	import InlineTimer from './inline/InlineTimer.svelte';
 
 	interface Props {
 		sections: SectionDisplay[];
+		/**
+		 * Illustrations keyed by step number, from cooklang's "Recipe.2.jpg"
+		 * convention. Sparse: a recipe may illustrate only some of its steps.
+		 */
+		stepImages?: Record<string, ImageRef | null>;
 		cookMode: boolean;
 		currentStep: number;
 		hoveredIngredientIndex: number | null;
@@ -20,6 +25,7 @@
 
 	const {
 		sections,
+		stepImages = {},
 		cookMode,
 		currentStep,
 		hoveredIngredientIndex,
@@ -96,7 +102,7 @@
 									? 'opacity-70'
 									: ''}"
 					>
-						<span class="min-w-1rem text-lg font-bold">
+						<span class="min-w-6 text-lg font-bold tabular-nums">
 							{#if status === 'completed' && cookMode}
 								<span class="text-success-500">✓</span>
 							{:else}
@@ -140,6 +146,22 @@
 									{/if}
 								{/each}
 							</p>
+
+							{#if stepImages[content.number]}
+								{@const stepImage = stepImages[content.number]}
+								{#if stepImage}
+									<img
+										src={stepImage.src}
+										srcset={stepImage.srcset}
+										width={stepImage.width}
+										height={stepImage.height}
+										loading="lazy"
+										decoding="async"
+										alt="Step {content.number}"
+										class="mt-3 max-w-full rounded-lg"
+									/>
+								{/if}
+							{/if}
 						</div>
 					</div>
 				{/if}

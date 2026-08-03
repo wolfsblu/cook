@@ -38,50 +38,55 @@
 
 	<ul class="divide-border divide-y">
 		{#each selections as selection (selection.slug)}
-			<li class="flex items-center justify-between gap-2 py-2 first:pt-0">
-				<div class="min-w-0 flex-1">
-					<a href="/recipe/{selection.slug}" class="link block truncate text-sm">
-						{selection.title}
-					</a>
+			<li class="space-y-1.5 py-2 first:pt-0">
+				<!-- A line of its own, so the title is not truncated to whatever the
+				     stepper and the remove button leave over. -->
+				<a href="/recipe/{selection.slug}" class="link block text-sm font-medium">
+					{selection.title}
+				</a>
+
+				<div class="flex items-center gap-2">
 					{#if selection.servings}
 						<span class="text-fg-muted text-xs">
 							{Math.round(selection.servings * selection.scale)} servings
 						</span>
 					{/if}
-				</div>
 
-				<div class="flex shrink-0 items-center gap-2">
-					<div class="border-border flex items-center gap-1 rounded-md border px-1 py-0.5">
-						<form method="POST" action="?/setScale" use:enhance>
+					<!-- `ml-auto` rather than `justify-between`: the controls stay right
+					     regardless of whether the recipe declares any servings. -->
+					<div class="ml-auto flex shrink-0 items-center gap-2">
+						<div class="border-border flex items-center gap-1 rounded-md border px-1 py-0.5">
+							<form method="POST" action="?/setScale" use:enhance>
+								<input type="hidden" name="slug" value={selection.slug} />
+								<input type="hidden" name="scale" value={selection.scale - 0.5} />
+								<IconButton
+									type="submit"
+									size="sm"
+									label="Decrease {selection.title}"
+									disabled={selection.scale <= 0.5}
+								>
+									<MinusIcon class="size-3.5" />
+								</IconButton>
+							</form>
+
+							<span class="min-w-10 text-center text-sm tabular-nums">{selection.scale}×</span>
+
+							<form method="POST" action="?/setScale" use:enhance>
+								<input type="hidden" name="slug" value={selection.slug} />
+								<input type="hidden" name="scale" value={selection.scale + 0.5} />
+								<IconButton type="submit" size="sm" label="Increase {selection.title}">
+									<PlusIcon class="size-3.5" />
+								</IconButton>
+							</form>
+						</div>
+
+						<form method="POST" action="?/remove" use:enhance>
 							<input type="hidden" name="slug" value={selection.slug} />
-							<input type="hidden" name="scale" value={selection.scale - 0.5} />
-							<IconButton
-								type="submit"
-								size="sm"
-								label="Decrease {selection.title}"
-								disabled={selection.scale <= 0.5}
-							>
-								<MinusIcon class="size-3.5" />
-							</IconButton>
-						</form>
-
-						<span class="min-w-10 text-center text-sm tabular-nums">{selection.scale}×</span>
-
-						<form method="POST" action="?/setScale" use:enhance>
-							<input type="hidden" name="slug" value={selection.slug} />
-							<input type="hidden" name="scale" value={selection.scale + 0.5} />
-							<IconButton type="submit" size="sm" label="Increase {selection.title}">
-								<PlusIcon class="size-3.5" />
+							<IconButton type="submit" variant="dangerSoft" label="Remove {selection.title}">
+								<Trash2Icon class="size-4" />
 							</IconButton>
 						</form>
 					</div>
-
-					<form method="POST" action="?/remove" use:enhance>
-						<input type="hidden" name="slug" value={selection.slug} />
-						<IconButton type="submit" variant="dangerSoft" label="Remove {selection.title}">
-							<Trash2Icon class="size-4" />
-						</IconButton>
-					</form>
 				</div>
 			</li>
 		{/each}

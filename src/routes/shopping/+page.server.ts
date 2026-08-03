@@ -10,9 +10,9 @@ import {
 
 export const load: PageServerLoad = async () => {
 	const selections = await resolveSelections();
-	const { list, error, cliMissing } = await getShoppingList(selections);
+	const { list, error, cliMissing, warnings } = await getShoppingList(selections);
 
-	return { selections, list, error, cliMissing };
+	return { selections, list, error, cliMissing, warnings };
 };
 
 function readSlug(data: FormData): string | null {

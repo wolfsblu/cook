@@ -23,6 +23,15 @@ export interface GenerateResult {
 	error: string | null;
 	/** True when the Cook CLI is missing, which is expected in development. */
 	cliMissing: boolean;
+	/**
+	 * Non-fatal complaints from the CLI, shown to the user.
+	 *
+	 * Most often a pantry entry whose unit does not match the recipe's, e.g.
+	 * 2kg of flour against a recipe calling for grams. cookcli 0.19.3 does not
+	 * convert between them and quietly leaves the ingredient on the list, so
+	 * without this the pantry looks broken.
+	 */
+	warnings: string[];
 }
 
 interface Memo {
@@ -55,21 +64,22 @@ async function cacheKey(selections: readonly ResolvedSelection[]): Promise<strin
 
 async function run(selections: readonly ResolvedSelection[]): Promise<GenerateResult> {
 	if (selections.length === 0) {
-		return { list: null, error: null, cliMissing: false };
+		return { list: null, error: null, cliMissing: false, warnings: [] };
 	}
 
 	try {
-		const output = await generateShoppingList(
+		const { list, warnings } = await generateShoppingList(
 			selections.map((selection) => ({ relPath: selection.relPath, scale: selection.scale }))
 		);
 
-		const display = transformShoppingList(output, selections.length);
+		const display = transformShoppingList(list, selections.length);
 		const order = await getAisleOrder();
 
 		return {
 			list: { ...display, categories: sortByAisle(display.categories, order) },
 			error: null,
-			cliMissing: false
+			cliMissing: false,
+			warnings
 		};
 	} catch (error) {
 		if (error instanceof CookCLIError) {
@@ -82,6 +92,7 @@ async function run(selections: readonly ResolvedSelection[]): Promise<GenerateRe
 			return {
 				list: null,
 				cliMissing: missing,
+				warnings: [],
 				error: missing
 					? 'The cook CLI is not available, so the combined list cannot be generated.'
 					: `${error.message}${error.stderr ? ` (${error.stderr.trim()})` : ''}`
@@ -92,6 +103,7 @@ async function run(selections: readonly ResolvedSelection[]): Promise<GenerateRe
 		return {
 			list: null,
 			cliMissing: false,
+			warnings: [],
 			error: error instanceof Error ? error.message : 'Failed to generate the shopping list'
 		};
 	}

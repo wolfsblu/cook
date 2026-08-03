@@ -62,9 +62,73 @@ function buildCLIArgs(recipes: RecipeInput[]): string[] {
 }
 
 /**
+ * A successful run, plus anything the CLI complained about on the way.
+ *
+ * Warnings matter here: when a pantry entry cannot be matched to a recipe's
+ * ingredient the CLI declines to subtract it and says so on stderr. Discarding
+ * that leaves the user staring at an item they know they have in stock with no
+ * explanation.
+ */
+export interface CookCLIResult {
+	list: CookCLIShoppingList;
+	warnings: string[];
+}
+
+/**
+ * ANSI colour codes. Matching the ESC control character is the entire point of
+ * this pattern, so the control-character lint rule has nothing useful to say.
+ */
+// eslint-disable-next-line no-control-regex
+const ANSI = /\u001b\[[0-9;]*m/g;
+
+/**
+ * Pull the human-readable part out of the CLI's `WARN ...` lines.
+ *
+ * A real example, which is what makes these worth surfacing:
+ *   WARN Unit mismatch for 'flour': recipe needs 'g', pantry has 'kg'
+ *
+ * The CLI colours its output and wraps continuations onto indented following
+ * lines, so escapes are stripped and wrapped lines rejoined before matching.
+ */
+export function parseWarnings(stderr: string): string[] {
+	const warnings: string[] = [];
+	let current: string | null = null;
+
+	const flush = () => {
+		const text = current?.trim();
+		if (text && !warnings.includes(text)) warnings.push(text);
+		current = null;
+	};
+
+	for (const raw of stderr.replace(ANSI, '').split(/\r?\n/)) {
+		const match = raw.match(/\bWARN\b\s*(.*)/);
+
+		if (match) {
+			flush();
+			current = match[1];
+			continue;
+		}
+
+		// An indented line with no marker of its own continues the previous
+		// warning. Checking for the marker first matters because the CLI indents
+		// the warnings themselves, so treating every indented line as a
+		// continuation would fold them all into one.
+		if (current !== null && /^[ \t]+\S/.test(raw)) {
+			current += ` ${raw.trim()}`;
+			continue;
+		}
+
+		flush();
+	}
+
+	flush();
+	return warnings;
+}
+
+/**
  * Execute Cook CLI command and return parsed JSON output
  */
-async function executeCookCLI(args: string[]): Promise<CookCLIShoppingList> {
+async function executeCookCLI(args: string[]): Promise<CookCLIResult> {
 	return new Promise((resolve, reject) => {
 		const recipePath = getRecipePath();
 
@@ -107,7 +171,7 @@ async function executeCookCLI(args: string[]): Promise<CookCLIShoppingList> {
 			// Parse JSON output
 			try {
 				const parsed = JSON.parse(stdout) as CookCLIShoppingList;
-				resolve(parsed);
+				resolve({ list: parsed, warnings: parseWarnings(stderr) });
 			} catch (error) {
 				reject(
 					new CookCLIError(
@@ -144,11 +208,10 @@ async function executeCookCLI(args: string[]): Promise<CookCLIShoppingList> {
  *   { relPath: 'lamb-chops.cook', scale: 1 }
  * ]);
  */
-export async function generateShoppingList(recipes: RecipeInput[]): Promise<CookCLIShoppingList> {
+export async function generateShoppingList(recipes: RecipeInput[]): Promise<CookCLIResult> {
 	if (recipes.length === 0) {
-		return [];
+		return { list: [], warnings: [] };
 	}
 
-	const args = buildCLIArgs(recipes);
-	return executeCookCLI(args);
+	return executeCookCLI(buildCLIArgs(recipes));
 }

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { ShoppingCartIcon, TerminalIcon } from '@lucide/svelte';
+	import { ShoppingCartIcon, TerminalIcon, TriangleAlertIcon } from '@lucide/svelte';
 	import type { PageProps } from './$types';
 	import SelectedRecipesList from '$lib/components/shopping/SelectedRecipesList.svelte';
 	import ShoppingListDisplay from '$lib/components/shopping/ShoppingListDisplay.svelte';
@@ -43,6 +43,28 @@
 							Your selected recipes are still listed; install the cook CLI to combine them.
 						</p>
 					{/if}
+				</div>
+			</Card>
+		{/if}
+
+		{#if data.warnings.length > 0}
+			<Card
+				variant="outline"
+				class="border-warn bg-warn-soft text-warn-soft-fg mb-6 flex items-start gap-3 p-4"
+			>
+				<TriangleAlertIcon class="mt-0.5 size-5 shrink-0" />
+				<div class="min-w-0">
+					<p class="font-semibold">Some pantry items could not be applied</p>
+					<ul class="mt-1 list-disc space-y-0.5 pl-4 text-sm">
+						{#each data.warnings as warning (warning)}
+							<li>{warning}</li>
+						{/each}
+					</ul>
+					<p class="mt-2 text-sm">
+						Stock is only subtracted when its unit matches the recipe's, so 2 kg of flour will not
+						cover a recipe measured in grams. Edit the entry in your
+						<a href="/pantry" class="link">pantry</a> to use the same unit.
+					</p>
 				</div>
 			</Card>
 		{/if}

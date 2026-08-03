@@ -53,6 +53,18 @@
 	}
 }
 
+/* For strips that scroll sideways on purpose, like the tag row. The bar itself
+   carries no meaning there -- the content is one line of chips you swipe, or
+   scroll with shift and the wheel -- and a permanent Windows scrollbar under
+   them is thicker than the chips are tall. */
+@utility no-scrollbar {
+	scrollbar-width: none;
+
+	&::-webkit-scrollbar {
+		display: none;
+	}
+}
+
 @layer utilities {
 	/* Overlay and panel animations, driven by the data-state Bits UI sets.
 	   These are CSS rather than Svelte transitions on purpose: Bits keeps the

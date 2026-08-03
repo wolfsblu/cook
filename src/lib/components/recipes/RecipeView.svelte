@@ -238,24 +238,18 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<article class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 {cookMode ? 'pb-28' : ''}">
-	<RecipeHeader {recipe} {image} />
+<!-- Rendered by the header, which puts it on the tag row. Cook mode passes no
+     actions at all: the control bar there carries Finish. -->
+{#snippet actionBar()}
+	<RecipeActionBar {slug} {scale} {inShoppingList} {listedScale} onstartcooking={toggleCookMode} />
+{/snippet}
 
-	{#if !cookMode}
-		<RecipeActionBar
-			{slug}
-			{scale}
-			{baseServings}
-			{inShoppingList}
-			{listedScale}
-			onscale={handleScale}
-			onstartcooking={toggleCookMode}
-		/>
-	{/if}
+<article class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 {cookMode ? 'pb-28' : ''}">
+	<RecipeHeader {recipe} {image} actions={cookMode ? undefined : actionBar} />
 
 	<div class="grid gap-6 lg:grid-cols-[300px_1fr]">
 		<aside class="space-y-4 lg:sticky lg:top-20 lg:self-start">
-			<RecipeMeta {recipe} {baseServings} />
+			<RecipeMeta {recipe} {baseServings} {scale} onscale={handleScale} />
 			<RecipeIngredients
 				ingredients={recipe.ingredients}
 				hoveredIndex={hoveredIngredientIndex}

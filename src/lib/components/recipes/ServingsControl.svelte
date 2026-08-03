@@ -1,6 +1,12 @@
 <script lang="ts">
+	import { UsersIcon } from '@lucide/svelte';
+
 	/**
 	 * Scale the recipe by editing the number of servings.
+	 *
+	 * Rendered as one row of the Details list, so it emits a `<dt>`/`<dd>` pair
+	 * matching the rows around it. It is the one value in that box you can
+	 * change, and the field says so without needing a label to explain it.
 	 *
 	 * `baseServings` must be what the file declares, *not* `recipe.servings` from
 	 * the scaled parse: cooklang applies the scale to the servings metadata as
@@ -55,11 +61,10 @@
 	}
 </script>
 
-<!-- Fixed height: this is one segment of the action bar, and a control half a
-     step shorter than the buttons beside it reads as a mistake. -->
-<div class="flex shrink-0 items-center gap-2 pr-1 pl-2">
-	<label for={uid} class="text-fg-muted text-sm">
-		{baseServings ? 'Servings' : 'Scale'}
+<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
+	<label for={uid} class="text-fg-muted flex items-center gap-2">
+		<UsersIcon class="size-4 shrink-0" />
+		{baseServings ? 'Serves' : 'Scale'}
 	</label>
 
 	<input
@@ -69,7 +74,7 @@
 		min={baseServings ? 1 : 0.1}
 		step={baseServings ? 1 : 0.1}
 		inputmode="decimal"
-		class="field h-9 w-20 py-0 text-center tabular-nums"
+		class="field h-8 w-20 py-0 text-center font-medium tabular-nums"
 		oninput={handleInput}
 		onblur={() => (draft = null)}
 	/>

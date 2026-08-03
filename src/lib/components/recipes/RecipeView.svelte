@@ -6,6 +6,7 @@
 	import { parseTimerQuantity } from '$lib/utils/timer';
 	import { playAlertSound } from '$lib/utils/audio';
 	import RecipeHeader from './RecipeHeader.svelte';
+	import RecipeMeta from './RecipeMeta.svelte';
 	import RecipeIngredients from './RecipeIngredients.svelte';
 	import RecipeCookware from './RecipeCookware.svelte';
 	import RecipeSteps from './RecipeSteps.svelte';
@@ -249,6 +250,7 @@
 
 	<div class="grid gap-6 lg:grid-cols-[300px_1fr]">
 		<aside class="space-y-4 lg:sticky lg:top-20 lg:self-start">
+			<RecipeMeta {recipe} />
 			<RecipeIngredients
 				ingredients={recipe.ingredients}
 				hoveredIndex={hoveredIngredientIndex}

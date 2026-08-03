@@ -70,6 +70,7 @@ export interface RecipeDisplay {
 	tags: string[];
 	author?: { name?: string; url?: string };
 	source?: { name?: string; url?: string };
+	course?: string | null;
 	servings?: number | string;
 	time?: number | { prep_time?: number; cook_time?: number };
 	ingredients: IngredientDisplay[];

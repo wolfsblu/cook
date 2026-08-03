@@ -44,29 +44,6 @@
 		</div>
 	{/if}
 
-	<div class="text-fg-muted flex flex-wrap gap-x-4 gap-y-1 text-sm">
-		{#if recipe.source?.url}
-			<a href={recipe.source.url} class="link" target="_blank" rel="noopener noreferrer">
-				{recipe.source.name ?? 'Source'}
-			</a>
-		{:else if recipe.source?.name}
-			<span>{recipe.source.name}</span>
-		{/if}
-
-		{#if recipe.author?.name}
-			<span>by {recipe.author.name}</span>
-		{/if}
-
-		{#if recipe.time}
-			<span>
-				{#if typeof recipe.time === 'number'}
-					{recipe.time} min
-				{:else}
-					{#if recipe.time.prep_time}Prep {recipe.time.prep_time} min{/if}
-					{#if recipe.time.prep_time && recipe.time.cook_time}·{/if}
-					{#if recipe.time.cook_time}Cook {recipe.time.cook_time} min{/if}
-				{/if}
-			</span>
-		{/if}
-	</div>
+	<!-- Servings, times, author and source live in RecipeMeta, beside the
+	     ingredients, rather than as a run-together line of text here. -->
 </header>

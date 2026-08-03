@@ -150,6 +150,7 @@ export async function getRecipeDisplay(entry: RecipeEntry, scale: number): Promi
 		tags: Array.from(recipe.tags ?? []),
 		author: recipe.author,
 		source: recipe.source,
+		course: recipe.course ?? null,
 		servings: recipe.servings,
 		time: recipe.time,
 		ingredients,

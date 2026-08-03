@@ -119,3 +119,32 @@ serving original images itself.
 
 The `cook` CLI is only needed for shopping lists. Without it the rest of the
 app works, and `/shopping` explains what is missing rather than failing.
+
+`PROTOCOL_HEADER` and `HOST_HEADER` are set for you in `docker-compose.yml`.
+They are not optional behind a proxy: SvelteKit rejects a form POST whose
+`Origin` does not match the origin it believes it is serving, so without them
+every submission fails with "Cross-site POST form submissions are forbidden".
+
+### Health
+
+`/health` reports whether the recipe directory is readable, how many recipes
+were found, and whether the `cook` CLI is available. It returns 503 when the
+recipe directory cannot be read, so a forgotten volume mount surfaces as an
+unhealthy container rather than an empty-looking library. The container
+healthcheck uses it, and Caddy waits for it before starting.
+
+### After upgrading the cook CLI
+
+The shopping list and pantry depend on CLI behaviour that unit tests cannot
+cover, because they mock the binary away. `scripts/smoke-cook.mjs` asserts it
+against the real binary and real recipes:
+
+```bash
+docker compose run --rm app node scripts/smoke-cook.mjs
+```
+
+It checks that recipes in subdirectories resolve, that `:n` scales them, that
+`--base-path` works, that recipe references expand, and — the two the pantry
+rests on — that `config/aisle.conf` and `config/pantry.conf` are discovered
+automatically, with stocked ingredients subtracted and unit mismatches warned
+about rather than silently ignored.

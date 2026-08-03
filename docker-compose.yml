@@ -61,8 +61,12 @@ services:
       - caddy-cache:/var/cache/caddy
       - caddy-data:/data
     depends_on:
-      - app
-      - imgproxy
+      # Waits for the app's healthcheck, which reports whether the recipe
+      # directory is actually readable rather than just whether it started.
+      app:
+        condition: service_healthy
+      imgproxy:
+        condition: service_started
 
 volumes:
   caddy-cache:

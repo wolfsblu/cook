@@ -73,6 +73,13 @@ export interface RecipeIndex {
 	scannedAt: number;
 	/** Newest mtime across all recipes; used as a cache key by the shopping list. */
 	maxMtimeMs: number;
+	/**
+	 * Whether the recipe directory could be read at all.
+	 *
+	 * Distinguishes "the library is empty" from "the volume is not mounted",
+	 * which otherwise look identical. The health endpoint reports on this.
+	 */
+	readable: boolean;
 }
 
 /** Everything cached for one file, so an unchanged file is never re-read. */
@@ -293,7 +300,8 @@ async function buildIndex(): Promise<RecipeIndex> {
 			allTags: [],
 			allCourses: [],
 			scannedAt,
-			maxMtimeMs: 0
+			maxMtimeMs: 0,
+			readable: false
 		};
 		cachedIndex = empty;
 		return empty;
@@ -380,7 +388,8 @@ async function buildIndex(): Promise<RecipeIndex> {
 			(a, b) => a.localeCompare(b)
 		),
 		scannedAt,
-		maxMtimeMs: live.reduce((max, entry) => Math.max(max, entry.mtimeMs), 0)
+		maxMtimeMs: live.reduce((max, entry) => Math.max(max, entry.mtimeMs), 0),
+		readable: true
 	};
 
 	cachedIndex = index;

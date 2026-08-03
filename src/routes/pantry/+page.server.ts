@@ -5,7 +5,8 @@ import {
 	daysUntilExpiry,
 	formatQuantity,
 	isExpiringSoon,
-	isLow
+	isLow,
+	parseQuantity
 } from '$lib/server/pantry/quantity.js';
 import { readPantry, updatePantry } from '$lib/server/pantry/store.js';
 
@@ -14,6 +15,13 @@ export interface PantryItemView extends PantryItem {
 	runningLow: boolean;
 	expiringSoon: boolean;
 	daysLeft: number | null;
+	/**
+	 * Numeric amount for sorting the quantity column. Computed here because
+	 * the parser lives under $lib/server and cannot be imported by a component.
+	 * Units are deliberately ignored: sorting is a within-column convenience,
+	 * not the meaningful comparison that compareQuantities refuses to fake.
+	 */
+	sortAmount: number | null;
 }
 
 export const load: PageServerLoad = async () => {
@@ -24,7 +32,8 @@ export const load: PageServerLoad = async () => {
 		displayQuantity: formatQuantity(item.quantity),
 		runningLow: isLow(item),
 		expiringSoon: isExpiringSoon(item),
-		daysLeft: daysUntilExpiry(item)
+		daysLeft: daysUntilExpiry(item),
+		sortAmount: parseQuantity(item.quantity)?.amount ?? null
 	}));
 
 	return {
@@ -54,15 +63,22 @@ export const actions: Actions = {
 		if (!section || !name) return fail(400, { message: 'Section and name are required' });
 
 		const originalName = str(data, 'originalName');
+		// Absent when adding; absent too for forms that never offered a folder
+		// picker, in which case the item cannot have moved.
+		const originalSection = str(data, 'originalSection') ?? section;
 
 		await updatePantry((doc) => {
-			// A rename is a remove plus an add; doing it in one lock keeps the
-			// file from ever holding both spellings.
-			if (originalName && originalName.toLowerCase() !== name.toLowerCase()) {
-				removeItem(doc, section, originalName);
-			}
+			// Read before removing, so a moved or renamed item keeps its
+			// "remembered but not stocked" state.
+			const existing = originalName ? findItem(doc, originalSection, originalName) : undefined;
 
-			const existing = originalName ? findItem(doc, section, originalName) : undefined;
+			// A rename or a move is a remove plus an add; doing it in one lock
+			// keeps the file from ever holding both entries.
+			const renamed = !!originalName && originalName.toLowerCase() !== name.toLowerCase();
+			const moved = originalSection !== section;
+			if (originalName && (renamed || moved)) {
+				removeItem(doc, originalSection, originalName);
+			}
 
 			upsertItem(doc, {
 				name,

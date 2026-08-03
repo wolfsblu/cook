@@ -10,12 +10,16 @@
 		open: boolean;
 		/** The item being edited, or null when adding a new one. */
 		item: PantryItem | null;
+		/** Folder to preselect when adding. */
 		section: string;
+		/** Every folder, so an item can be moved between them. */
+		sections: string[];
 	}
 
-	let { open = $bindable(), item, section }: Props = $props();
+	let { open = $bindable(), item, section, sections }: Props = $props();
 
 	const title = $derived(item ? `Edit ${item.name}` : 'Add item');
+	const currentSection = $derived(item?.section ?? section);
 </script>
 
 <Dialog.Root bind:open>
@@ -46,9 +50,12 @@
 					}}
 				class="space-y-4"
 			>
-				<input type="hidden" name="section" value={item?.section ?? section} />
 				{#if item}
 					<input type="hidden" name="originalName" value={item.name} />
+					<input type="hidden" name="originalSection" value={item.section} />
+					<!-- Round-tripped rather than edited: the action rewrites the whole
+					     entry, so an omitted field would be dropped from the file. -->
+					<input type="hidden" name="bought" value={item.bought ?? ''} />
 				{/if}
 
 				<div>
@@ -61,6 +68,22 @@
 						value={item?.name ?? ''}
 						placeholder="olive oil"
 					/>
+				</div>
+
+				<div>
+					<label for="pantry-section" class="text-fg mb-1 block text-sm font-medium">Folder</label>
+					<!-- A native select, not ui/Select.svelte: this is a real POST form
+					     and the Bits UI select does not contribute a form value. -->
+					<select
+						id="pantry-section"
+						name="section"
+						class="field capitalize"
+						value={currentSection}
+					>
+						{#each sections as name (name)}
+							<option value={name}>{name}</option>
+						{/each}
+					</select>
 				</div>
 
 				<div class="grid grid-cols-2 gap-3">

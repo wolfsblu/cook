@@ -19,9 +19,11 @@
 		scale: number;
 		inList: boolean;
 		listedScale: number | null;
+		/** Passed to the button, so callers can shape it -- the FAB wants a pill. */
+		class?: string;
 	}
 
-	const { slug, scale, inList, listedScale }: Props = $props();
+	const { slug, scale, inList, listedScale, class: className }: Props = $props();
 
 	const scaleDiffers = $derived(inList && listedScale !== null && listedScale !== scale);
 
@@ -37,7 +39,7 @@
 {#if inList && !scaleDiffers}
 	<form method="POST" action="/shopping?/remove" use:enhance={submit}>
 		<input type="hidden" name="slug" value={slug} />
-		<Button type="submit" variant="dangerSoft">
+		<Button type="submit" variant="dangerSoft" class={className}>
 			<XIcon class="size-4" />
 			Remove from list
 		</Button>
@@ -49,7 +51,7 @@
 		<!-- Soft even in the update state: "Start cooking" is the page's primary
 		     action, and two filled buttons side by side compete rather than
 		     guide. The changed label and icon carry the signal. -->
-		<Button type="submit" variant="soft">
+		<Button type="submit" variant="soft" class={className}>
 			{#if scaleDiffers}
 				<CheckIcon class="size-4" />
 				Update to {scale}×

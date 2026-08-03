@@ -5,11 +5,11 @@
 		FlameIcon,
 		SoupIcon,
 		TimerIcon,
-		UsersIcon,
 		UserIcon
 	} from '@lucide/svelte';
 	import type { RecipeDisplay } from '$lib/types/recipe';
 	import Card from '$lib/components/ui/Card.svelte';
+	import ServingsControl from './ServingsControl.svelte';
 
 	/**
 	 * The recipe's frontmatter, as a labelled box.
@@ -19,9 +19,11 @@
 	 */
 	interface Props {
 		recipe: RecipeDisplay;
+		scale: number;
+		onscale: (newScale: number) => void;
 	}
 
-	const { recipe }: Props = $props();
+	const { recipe, scale, onscale }: Props = $props();
 
 	function minutes(value: number): string {
 		if (value < 60) return `${value} min`;
@@ -73,87 +75,71 @@
 		}
 	});
 
-	const hasAnything = $derived(
-		Boolean(recipe.servings) ||
-			times.length > 0 ||
-			Boolean(recipe.course) ||
-			Boolean(recipe.author?.name) ||
-			Boolean(recipe.source?.name || recipe.source?.url)
-	);
+	// No `hasAnything` guard any more: the scale row is always worth showing, even
+	// for a recipe whose frontmatter says nothing, so the box always has content.
+	// Dropping the guard is also what keeps scaling reachable on such a recipe.
 </script>
 
-{#if hasAnything}
-	<Card variant="outline" class="p-4">
-		<h2 class="text-fg mb-3 text-lg font-semibold">Details</h2>
+<Card variant="outline" class="p-4">
+	<h2 class="text-fg mb-3 text-lg font-semibold">Details</h2>
 
-		<dl class="divide-border divide-y text-sm">
-			{#if recipe.servings}
-				<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
-					<!-- "Recipe serves", not "Serves": the control above shows the
-					     scaled figure, this is what the file itself declares. -->
-					<dt class="text-fg-muted flex items-center gap-2">
-						<UsersIcon class="size-4 shrink-0" />
-						Recipe serves
-					</dt>
-					<dd class="text-fg font-medium tabular-nums">{recipe.servings}</dd>
-				</div>
-			{/if}
+	<dl class="divide-border divide-y text-sm">
+		<ServingsControl baseServings={recipe.servings} {scale} {onscale} />
 
-			{#each times as row (row.label)}
-				<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
-					<dt class="text-fg-muted flex items-center gap-2">
-						<row.icon class="size-4 shrink-0" />
-						{row.label}
-					</dt>
-					<dd class="text-fg font-medium tabular-nums">{row.value}</dd>
-				</div>
-			{/each}
+		{#each times as row (row.label)}
+			<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
+				<dt class="text-fg-muted flex items-center gap-2">
+					<row.icon class="size-4 shrink-0" />
+					{row.label}
+				</dt>
+				<dd class="text-fg font-medium tabular-nums">{row.value}</dd>
+			</div>
+		{/each}
 
-			{#if recipe.course}
-				<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
-					<dt class="text-fg-muted flex items-center gap-2">
-						<SoupIcon class="size-4 shrink-0" />
-						Course
-					</dt>
-					<dd class="text-fg font-medium capitalize">{recipe.course}</dd>
-				</div>
-			{/if}
+		{#if recipe.course}
+			<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
+				<dt class="text-fg-muted flex items-center gap-2">
+					<SoupIcon class="size-4 shrink-0" />
+					Course
+				</dt>
+				<dd class="text-fg font-medium capitalize">{recipe.course}</dd>
+			</div>
+		{/if}
 
-			{#if recipe.author?.name}
-				<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
-					<dt class="text-fg-muted flex items-center gap-2">
-						<UserIcon class="size-4 shrink-0" />
-						Author
-					</dt>
-					<dd class="min-w-0 truncate text-right font-medium">
-						{#if recipe.author.url}
-							<a href={recipe.author.url} class="link" target="_blank" rel="noopener noreferrer"
-								>{recipe.author.name}</a
-							>
-						{:else}
-							<span class="text-fg">{recipe.author.name}</span>
-						{/if}
-					</dd>
-				</div>
-			{/if}
+		{#if recipe.author?.name}
+			<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
+				<dt class="text-fg-muted flex items-center gap-2">
+					<UserIcon class="size-4 shrink-0" />
+					Author
+				</dt>
+				<dd class="min-w-0 truncate text-right font-medium">
+					{#if recipe.author.url}
+						<a href={recipe.author.url} class="link" target="_blank" rel="noopener noreferrer"
+							>{recipe.author.name}</a
+						>
+					{:else}
+						<span class="text-fg">{recipe.author.name}</span>
+					{/if}
+				</dd>
+			</div>
+		{/if}
 
-			{#if sourceLabel}
-				<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
-					<dt class="text-fg-muted flex items-center gap-2">
-						<ExternalLinkIcon class="size-4 shrink-0" />
-						Source
-					</dt>
-					<dd class="min-w-0 truncate text-right font-medium">
-						{#if recipe.source?.url}
-							<a href={recipe.source.url} class="link" target="_blank" rel="noopener noreferrer"
-								>{sourceLabel}</a
-							>
-						{:else}
-							<span class="text-fg">{sourceLabel}</span>
-						{/if}
-					</dd>
-				</div>
-			{/if}
-		</dl>
-	</Card>
-{/if}
+		{#if sourceLabel}
+			<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
+				<dt class="text-fg-muted flex items-center gap-2">
+					<ExternalLinkIcon class="size-4 shrink-0" />
+					Source
+				</dt>
+				<dd class="min-w-0 truncate text-right font-medium">
+					{#if recipe.source?.url}
+						<a href={recipe.source.url} class="link" target="_blank" rel="noopener noreferrer"
+							>{sourceLabel}</a
+						>
+					{:else}
+						<span class="text-fg">{sourceLabel}</span>
+					{/if}
+				</dd>
+			</div>
+		{/if}
+	</dl>
+</Card>

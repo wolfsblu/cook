@@ -2,7 +2,6 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import type { ImageRef, RecipeDisplay, StepDisplay, ActiveTimer } from '$lib/types/recipe';
-	import { CookingPotIcon } from '@lucide/svelte';
 	import { parseTimerQuantity } from '$lib/utils/timer';
 	import { playAlertSound } from '$lib/utils/audio';
 	import RecipeHeader from './RecipeHeader.svelte';
@@ -10,11 +9,9 @@
 	import RecipeIngredients from './RecipeIngredients.svelte';
 	import RecipeCookware from './RecipeCookware.svelte';
 	import RecipeSteps from './RecipeSteps.svelte';
-	import ServingsControl from './ServingsControl.svelte';
+	import RecipeActions from './RecipeActions.svelte';
 	import CookControlBar from './cook/CookControlBar.svelte';
 	import ActiveTimersPanel from './cook/ActiveTimersPanel.svelte';
-	import AddToShoppingListButton from '$lib/components/shopping/AddToShoppingListButton.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
 
 	interface Props {
 		recipe: RecipeDisplay;
@@ -234,23 +231,15 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<article class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 {cookMode ? 'pb-28' : ''}">
+<!-- The bottom padding is unconditional now: outside cook mode the floating
+     actions overlap the tail of the content just as the cook bar does, and they
+     are the taller of the two once the dial is open. -->
+<article class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 pb-32 sm:px-6">
 	<RecipeHeader {recipe} {image} />
-
-	<div class="flex flex-wrap items-center justify-between gap-4">
-		<ServingsControl baseServings={recipe.servings} {scale} onscale={handleScale} />
-		<div class="flex flex-wrap items-center gap-2">
-			<AddToShoppingListButton {slug} {scale} inList={inShoppingList} {listedScale} />
-			<Button variant={cookMode ? 'ghost' : 'primary'} onclick={toggleCookMode}>
-				<CookingPotIcon class="size-4" />
-				{cookMode ? 'Exit cook mode' : 'Start cooking'}
-			</Button>
-		</div>
-	</div>
 
 	<div class="grid gap-6 lg:grid-cols-[300px_1fr]">
 		<aside class="space-y-4 lg:sticky lg:top-20 lg:self-start">
-			<RecipeMeta {recipe} />
+			<RecipeMeta {recipe} {scale} onscale={handleScale} />
 			<RecipeIngredients
 				ingredients={recipe.ingredients}
 				hoveredIndex={hoveredIngredientIndex}
@@ -284,6 +273,8 @@
 	</div>
 </article>
 
+<!-- One or the other owns the bottom of the screen: in cook mode the control bar
+     carries Finish, so the actions would only be a second way out. -->
 {#if cookMode}
 	<CookControlBar
 		{currentStep}
@@ -294,6 +285,8 @@
 		onfinish={finishCooking}
 		ontoggletimers={toggleTimersPanel}
 	/>
+{:else}
+	<RecipeActions {slug} {scale} {inShoppingList} {listedScale} onstartcooking={toggleCookMode} />
 {/if}
 
 {#if showTimersPanel}

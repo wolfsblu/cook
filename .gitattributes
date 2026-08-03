@@ -1,0 +1,14 @@
+# Normalize to LF in the repository. The toolchain runs in Linux containers,
+# so keeping working copies LF avoids Prettier and ESLint disagreeing with git
+# about line endings on Windows checkouts.
+* text=auto eol=lf
+
+# Cooklang sources and configs are read by the cook CLI, which expects LF.
+*.cook text eol=lf
+*.conf text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.svg text eol=lf

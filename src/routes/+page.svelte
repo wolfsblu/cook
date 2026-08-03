@@ -8,20 +8,15 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Page from '$lib/components/ui/Page.svelte';
-	import { applyFilters, sortRecipes } from '$lib/utils/recipe-filters';
 	import { parseFilterParams } from '$lib/utils/url-params';
 
 	const { data }: PageProps = $props();
 
 	let isDrawerOpen = $state(false);
 
+	// Filtering, sorting and paging all happen in the load function; the params
+	// are still read here for the filter badge and the empty state.
 	const filters = $derived(parseFilterParams(page.url.searchParams));
-	const sortField = $derived(page.url.searchParams.get('sort') || 'name');
-	const sortOrder = $derived((page.url.searchParams.get('order') || 'asc') as 'asc' | 'desc');
-
-	const displayRecipes = $derived(
-		sortRecipes(applyFilters(data.recipes, filters), sortField, sortOrder)
-	);
 
 	const activeFilterCount = $derived(
 		(filters.tags.length > 0 ? 1 : 0) +
@@ -39,10 +34,15 @@
 
 <Page wide>
 	<div class="mb-6">
-		<RecipeFilters bind:isDrawerOpen {activeFilterCount} />
+		<RecipeFilters
+			bind:isDrawerOpen
+			{activeFilterCount}
+			pageNumber={data.pageNumber}
+			totalPages={data.totalPages}
+		/>
 	</div>
 
-	{#if displayRecipes.length === 0}
+	{#if data.totalRecipes === 0}
 		<EmptyState
 			icon={SearchXIcon}
 			title="No recipes found"
@@ -60,7 +60,7 @@
 		<div
 			class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
 		>
-			{#each displayRecipes as recipe (recipe.slug)}
+			{#each data.recipes as recipe (recipe.slug)}
 				<RecipeCard {recipe} />
 			{/each}
 		</div>

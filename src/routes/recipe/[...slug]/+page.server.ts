@@ -26,6 +26,11 @@ export const load: PageServerLoad = async ({ params, url }) => {
 
 	return {
 		recipe,
+		// The parser scales the servings metadata along with the quantities, so
+		// `recipe.servings` is the scaled figure, not what the file declares. The
+		// index parses unscaled, so its copy is the base the control needs -- ask
+		// the scaled one and every edit compounds the scale it already applied.
+		baseServings: entry.servings,
 		inShoppingList: selection !== undefined,
 		listedScale: selection?.scale ?? null,
 		image: imageRef(entry.image, 'hero'),

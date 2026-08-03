@@ -16,6 +16,8 @@
 	interface Props {
 		recipe: RecipeDisplay;
 		scale: number;
+		/** Unscaled, from the index -- `recipe.servings` has the scale applied. */
+		baseServings: number | null;
 		slug: string;
 		image?: ImageRef | null;
 		stepImages?: Record<string, ImageRef | null>;
@@ -26,6 +28,7 @@
 	const {
 		recipe,
 		scale,
+		baseServings,
 		slug,
 		image = null,
 		stepImages = {},
@@ -115,10 +118,14 @@
 		)
 	);
 
+	// The parser rescales the recipe, so this is a navigation rather than local
+	// state. `keepFocus` matters: the servings field applies as you type, and
+	// without it every rescale would pull the caret out of the field you are
+	// still typing in.
 	function handleScale(newScale: number) {
 		const url = new URL(page.url);
 		url.searchParams.set('scale', String(newScale));
-		goto(url.toString(), { replaceState: true });
+		goto(url.toString(), { replaceState: true, keepFocus: true, noScroll: true });
 	}
 
 	function toggleCookMode() {
@@ -238,7 +245,7 @@
 		<RecipeActionBar
 			{slug}
 			{scale}
-			baseServings={recipe.servings}
+			{baseServings}
 			{inShoppingList}
 			{listedScale}
 			onscale={handleScale}
@@ -248,7 +255,7 @@
 
 	<div class="grid gap-6 lg:grid-cols-[300px_1fr]">
 		<aside class="space-y-4 lg:sticky lg:top-20 lg:self-start">
-			<RecipeMeta {recipe} />
+			<RecipeMeta {recipe} {baseServings} />
 			<RecipeIngredients
 				ingredients={recipe.ingredients}
 				hoveredIndex={hoveredIngredientIndex}

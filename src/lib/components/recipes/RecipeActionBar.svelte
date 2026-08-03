@@ -15,7 +15,7 @@
 	interface Props {
 		slug: string;
 		scale: number;
-		baseServings: number | string | null | undefined;
+		baseServings: number | null;
 		inShoppingList: boolean;
 		listedScale: number | null;
 		onscale: (newScale: number) => void;

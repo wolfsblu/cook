@@ -1,13 +1,4 @@
 <script lang="ts">
-	import { UsersIcon } from '@lucide/svelte';
-
-	/**
-	 * The scale control, rendered as one row of the Details list.
-	 *
-	 * It used to sit in an action row of its own above the content grid. It lives
-	 * in `RecipeMeta`'s `<dl>` now, so it emits a `<dt>`/`<dd>` pair matching the
-	 * rows around it rather than a standalone flex box.
-	 */
 	interface Props {
 		baseServings: number | string | null | undefined;
 		scale: number;
@@ -56,34 +47,32 @@
 	}
 </script>
 
-<div class="flex items-center justify-between gap-3 py-1.5 first:pt-0">
-	<dt class="text-fg-muted flex items-center gap-2">
-		<UsersIcon class="size-4 shrink-0" />
+<!-- Fixed heights throughout: this is one segment of the action bar, and a
+     control half a step shorter than the buttons beside it reads as a mistake. -->
+<div class="flex shrink-0 items-center gap-2 pr-1 pl-2">
+	<span class="text-fg-muted text-sm">
 		{numericBase ? 'Servings' : 'Scale'}
-	</dt>
-	<dd>
-		{#if editing}
-			<input
-				bind:this={inputRef}
-				bind:value={inputValue}
-				type="number"
-				min="1"
-				step="1"
-				aria-label={numericBase ? 'Servings' : 'Scale'}
-				class="field w-20 py-1 text-center tabular-nums"
-				onblur={commit}
-				onkeydown={handleKeydown}
-			/>
-		{:else}
-			<!-- A soft pill rather than plain text like the sibling rows: this is the
-			     one value in the box you can change, and it has to look it. -->
-			<button
-				type="button"
-				class="bg-accent-soft text-accent-soft-fg hover:bg-accent-soft/70 rounded-md px-3 py-1 font-medium tabular-nums transition-colors duration-150"
-				onclick={startEditing}
-			>
-				{displayValue}
-			</button>
-		{/if}
-	</dd>
+	</span>
+
+	{#if editing}
+		<input
+			bind:this={inputRef}
+			bind:value={inputValue}
+			type="number"
+			min="1"
+			step="1"
+			aria-label={numericBase ? 'Servings' : 'Scale'}
+			class="field h-9 w-20 py-0 text-center tabular-nums"
+			onblur={commit}
+			onkeydown={handleKeydown}
+		/>
+	{:else}
+		<button
+			type="button"
+			class="bg-accent-soft text-accent-soft-fg hover:bg-accent-soft/70 inline-flex h-9 items-center rounded-md px-3 text-sm font-medium tabular-nums transition-colors duration-150"
+			onclick={startEditing}
+		>
+			{displayValue}
+		</button>
+	{/if}
 </div>

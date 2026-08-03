@@ -19,13 +19,27 @@
 		scale: number;
 		inList: boolean;
 		listedScale: number | null;
-		/** Passed to the button, so callers can shape it -- the FAB wants a pill. */
+		/** Passed to the button, so callers can shape it to their layout. */
 		class?: string;
+		/** Drops the label below `sm`, so the action bar fits a narrow phone. */
+		compact?: boolean;
 	}
 
-	const { slug, scale, inList, listedScale, class: className }: Props = $props();
+	const { slug, scale, inList, listedScale, class: className, compact = false }: Props = $props();
 
 	const scaleDiffers = $derived(inList && listedScale !== null && listedScale !== scale);
+
+	const label = $derived(
+		inList && !scaleDiffers
+			? 'Remove from list'
+			: scaleDiffers
+				? `Update to ${scale}×`
+				: 'Add to list'
+	);
+
+	// The label is the accessible name whether or not it is on screen, so the
+	// compact button is not an unlabelled icon.
+	const labelClass = $derived(compact ? 'hidden sm:inline' : '');
 
 	const submit =
 		() =>
@@ -39,9 +53,9 @@
 {#if inList && !scaleDiffers}
 	<form method="POST" action="/shopping?/remove" use:enhance={submit}>
 		<input type="hidden" name="slug" value={slug} />
-		<Button type="submit" variant="dangerSoft" class={className}>
+		<Button type="submit" variant="dangerSoft" class={className} aria-label={label}>
 			<XIcon class="size-4" />
-			Remove from list
+			<span class={labelClass}>{label}</span>
 		</Button>
 	</form>
 {:else}
@@ -51,14 +65,13 @@
 		<!-- Soft even in the update state: "Start cooking" is the page's primary
 		     action, and two filled buttons side by side compete rather than
 		     guide. The changed label and icon carry the signal. -->
-		<Button type="submit" variant="soft" class={className}>
+		<Button type="submit" variant="soft" class={className} aria-label={label}>
 			{#if scaleDiffers}
 				<CheckIcon class="size-4" />
-				Update to {scale}×
 			{:else}
 				<ShoppingCartIcon class="size-4" />
-				Add to list
 			{/if}
+			<span class={labelClass}>{label}</span>
 		</Button>
 	</form>
 {/if}

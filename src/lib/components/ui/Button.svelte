@@ -66,7 +66,9 @@
 		{@render children()}
 	</a>
 {:else}
-	<button class={classes} disabled={loading || (rest as HTMLButtonAttributes).disabled} {...rest}>
+	<!-- disabled comes after the spread: otherwise a `disabled` in rest would
+	     overwrite it and a loading button would stay clickable. -->
+	<button class={classes} {...rest} disabled={loading || (rest as HTMLButtonAttributes).disabled}>
 		{#if loading}
 			<LoaderCircleIcon class="size-4 animate-spin" aria-hidden="true" />
 		{/if}

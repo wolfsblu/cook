@@ -1,7 +1,6 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { ShoppingCartIcon } from '@lucide/svelte';
-	import { shoppingListStore } from '$lib/stores/shopping-list.svelte';
+	import { ShoppingCartIcon, TerminalIcon } from '@lucide/svelte';
+	import type { PageProps } from './$types';
 	import SelectedRecipesList from '$lib/components/shopping/SelectedRecipesList.svelte';
 	import ShoppingListDisplay from '$lib/components/shopping/ShoppingListDisplay.svelte';
 	import Button from '$lib/components/ui/Button.svelte';
@@ -9,9 +8,7 @@
 	import EmptyState from '$lib/components/ui/EmptyState.svelte';
 	import Page from '$lib/components/ui/Page.svelte';
 
-	onMount(() => {
-		shoppingListStore.load();
-	});
+	const { data }: PageProps = $props();
 </script>
 
 <svelte:head>
@@ -19,39 +16,44 @@
 </svelte:head>
 
 <Page title="Shopping">
-	{#if shoppingListStore.errorMessage}
-		<Card variant="outline" class="border-danger bg-danger-soft text-danger-soft-fg mb-6 p-4">
-			<p class="font-semibold">Could not generate the shopping list</p>
-			<p class="mt-1 text-sm">{shoppingListStore.errorMessage}</p>
-		</Card>
-	{/if}
-
-	{#if shoppingListStore.recipes.length === 0 && !shoppingListStore.isLoading}
+	{#if data.selections.length === 0}
 		<EmptyState
 			icon={ShoppingCartIcon}
 			title="Your shopping list is empty"
-			description="Open a recipe and add it to build a combined list, with quantities merged across recipes."
+			description="Open a recipe and add it to build a combined list, with quantities merged across recipes and anything in your pantry subtracted."
 		>
 			{#snippet actions()}
 				<Button href="/">Browse recipes</Button>
 			{/snippet}
 		</EmptyState>
 	{:else}
+		{#if data.error}
+			<Card
+				variant="outline"
+				class="border-warn bg-warn-soft text-warn-soft-fg mb-6 flex items-start gap-3 p-4"
+			>
+				<TerminalIcon class="mt-0.5 size-5 shrink-0" />
+				<div>
+					<p class="font-semibold">
+						{data.cliMissing ? 'Combined list unavailable' : 'Could not generate the list'}
+					</p>
+					<p class="mt-1 text-sm">{data.error}</p>
+					{#if data.cliMissing}
+						<p class="mt-1 text-sm">
+							Your selected recipes are still listed; install the cook CLI to combine them.
+						</p>
+					{/if}
+				</div>
+			</Card>
+		{/if}
+
 		<div class="grid gap-6 lg:grid-cols-[22rem_1fr]">
 			<aside>
-				<SelectedRecipesList
-					recipes={shoppingListStore.recipes}
-					onupdatescale={(slug, scale) => shoppingListStore.updateScale(slug, scale)}
-					onremove={(slug) => shoppingListStore.removeRecipe(slug)}
-					onclear={() => shoppingListStore.clear()}
-				/>
+				<SelectedRecipesList selections={data.selections} />
 			</aside>
 
 			<div>
-				<ShoppingListDisplay
-					shoppingList={shoppingListStore.list}
-					loading={shoppingListStore.isLoading}
-				/>
+				<ShoppingListDisplay shoppingList={data.list} />
 			</div>
 		</div>
 	{/if}

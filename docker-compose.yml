@@ -18,6 +18,16 @@ services:
       IMGPROXY_BASE_URL: /img
       IMGPROXY_KEY: ${IMGPROXY_KEY:?set IMGPROXY_KEY in .env}
       IMGPROXY_SALT: ${IMGPROXY_SALT:?set IMGPROXY_SALT in .env}
+      # Required behind a proxy. SvelteKit rejects a form POST whose Origin
+      # header does not match the origin it thinks it is serving, and on its
+      # own the app cannot tell that Caddy terminated the connection. Without
+      # these, every form submission -- adding to the shopping list, editing
+      # the pantry -- fails with "Cross-site POST form submissions are
+      # forbidden". Caddy sends both headers by default.
+      PROTOCOL_HEADER: x-forwarded-proto
+      HOST_HEADER: x-forwarded-host
+      # Set ORIGIN instead if you put something else in front that does not.
+      ORIGIN: ${PUBLIC_ORIGIN:-}
     volumes:
       # Read-write: the shopping list and pantry are files in here.
       - ${RECIPES_HOST_PATH:?set RECIPES_HOST_PATH in .env}:/recipes

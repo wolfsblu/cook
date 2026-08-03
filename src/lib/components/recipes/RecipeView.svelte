@@ -21,19 +21,19 @@
 		slug: string;
 		image?: ImageRef | null;
 		stepImages?: Record<string, ImageRef | null>;
+		inShoppingList?: boolean;
+		listedScale?: number | null;
 	}
 
-	const { recipe, scale, slug, image = null, stepImages = {} }: Props = $props();
-
-	// RecipeDisplay leaves title and servings loose (a recipe may omit both, and
-	// cooklang allows a free-text servings value). RecipeSelection wants a
-	// definite title and a numeric servings, so narrow here rather than casting.
-	const selection = $derived({
+	const {
+		recipe,
+		scale,
 		slug,
-		title: recipe.title || slug,
-		servings: typeof recipe.servings === 'number' ? recipe.servings : undefined,
-		imageUrl: image?.src
-	});
+		image = null,
+		stepImages = {},
+		inShoppingList = false,
+		listedScale = null
+	}: Props = $props();
 
 	// URL-derived state
 	const cookMode = $derived(page.url.searchParams.has('cook'));
@@ -242,7 +242,7 @@
 	<div class="flex flex-wrap items-center justify-between gap-4">
 		<ServingsControl baseServings={recipe.servings} {scale} onscale={handleScale} />
 		<div class="flex flex-wrap items-center gap-2">
-			<AddToShoppingListButton recipe={selection} />
+			<AddToShoppingListButton {slug} {scale} inList={inShoppingList} {listedScale} />
 			<Button variant={cookMode ? 'ghost' : 'primary'} onclick={toggleCookMode}>
 				<CookingPotIcon class="size-4" />
 				{cookMode ? 'Exit cook mode' : 'Start cooking'}

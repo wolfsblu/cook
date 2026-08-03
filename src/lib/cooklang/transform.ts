@@ -79,26 +79,6 @@ function getCategoryDisplayName(category: string): string {
 }
 
 /**
- * Sort categories with produce first, other last
- */
-function sortCategories(categories: ShoppingListCategory[]): ShoppingListCategory[] {
-	const categoryOrder = new Map<string, number>([
-		['produce', 0],
-		['dairy', 1],
-		['meat', 2],
-		['pantry', 3],
-		['spices', 4],
-		['other', 999]
-	]);
-
-	return categories.sort((a, b) => {
-		const orderA = categoryOrder.get(a.name) ?? 500;
-		const orderB = categoryOrder.get(b.name) ?? 500;
-		return orderA - orderB;
-	});
-}
-
-/**
  * Sort items alphabetically within a category
  */
 function sortItems(items: ShoppingListItem[]): ShoppingListItem[] {
@@ -138,7 +118,9 @@ export function transformShoppingList(
 	const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0);
 
 	return {
-		categories: sortCategories(categories),
+		// Left in CLI order. Ordering is applied by the caller against the aisle
+		// config, which is the only thing that knows how the shop is laid out.
+		categories,
 		recipeCount,
 		totalItems
 	};

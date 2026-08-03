@@ -1,0 +1,124 @@
+/**
+ * Shopping list generation.
+ *
+ * Aggregation is delegated to the Cook CLI, which merges quantities across
+ * recipes, applies the aisle categories, and subtracts anything already
+ * stocked in the pantry. Verified against cookcli 0.19.3: both config files
+ * are auto-discovered from the base path, and pantry subtraction is
+ * unconditional.
+ */
+
+import { createHash } from 'node:crypto';
+import { CookCLIError, generateShoppingList } from '$lib/cooklang/cli.js';
+import { transformShoppingList } from '$lib/cooklang/transform.js';
+import type { ShoppingListDisplay } from '$lib/types/shopping-list.js';
+import { getIndex } from '../recipes/index.js';
+import { aisleMtimeMs, getAisleOrder, sortByAisle } from './aisle.js';
+import { pantryMtimeMs } from '../pantry/store.js';
+import type { ResolvedSelection } from './store.js';
+
+export interface GenerateResult {
+	list: ShoppingListDisplay | null;
+	/** Set when the list could not be produced; the page still renders. */
+	error: string | null;
+	/** True when the Cook CLI is missing, which is expected in development. */
+	cliMissing: boolean;
+}
+
+interface Memo {
+	key: string;
+	result: GenerateResult;
+}
+
+let memo: Memo | null = null;
+let inflight: { key: string; promise: Promise<GenerateResult> } | null = null;
+
+/**
+ * Cache key covering everything the output depends on: the selections, the
+ * recipes themselves, the aisle config, and the pantry. A pantry edit changes
+ * its mtime, so stock changes invalidate the list without any explicit wiring.
+ */
+async function cacheKey(selections: readonly ResolvedSelection[]): Promise<string> {
+	const [index, aisleMtime, pantryMtime] = await Promise.all([
+		getIndex(),
+		aisleMtimeMs(),
+		pantryMtimeMs()
+	]);
+
+	return createHash('sha1')
+		.update(JSON.stringify(selections.map((s) => [s.slug, s.scale])))
+		.update(String(index.maxMtimeMs))
+		.update(String(aisleMtime))
+		.update(String(pantryMtime))
+		.digest('hex');
+}
+
+async function run(selections: readonly ResolvedSelection[]): Promise<GenerateResult> {
+	if (selections.length === 0) {
+		return { list: null, error: null, cliMissing: false };
+	}
+
+	try {
+		const output = await generateShoppingList(
+			selections.map((selection) => ({ relPath: selection.relPath, scale: selection.scale }))
+		);
+
+		const display = transformShoppingList(output, selections.length);
+		const order = await getAisleOrder();
+
+		return {
+			list: { ...display, categories: sortByAisle(display.categories, order) },
+			error: null,
+			cliMissing: false
+		};
+	} catch (error) {
+		if (error instanceof CookCLIError) {
+			// ENOENT surfaces as a spawn failure; treat it as "not installed"
+			// rather than a server error, so development without the binary
+			// degrades to an explanation instead of a 500.
+			const missing = /Failed to execute Cook CLI/.test(error.message);
+			console.error('Shopping list generation failed:', error.message, error.stderr ?? '');
+
+			return {
+				list: null,
+				cliMissing: missing,
+				error: missing
+					? 'The cook CLI is not available, so the combined list cannot be generated.'
+					: `${error.message}${error.stderr ? ` (${error.stderr.trim()})` : ''}`
+			};
+		}
+
+		console.error('Shopping list generation failed:', error);
+		return {
+			list: null,
+			cliMissing: false,
+			error: error instanceof Error ? error.message : 'Failed to generate the shopping list'
+		};
+	}
+}
+
+/**
+ * Generate the list, reusing the previous result while nothing it depends on
+ * has changed. Each call would otherwise spawn a subprocess -- the old store
+ * re-ran it after every add, remove and scale change.
+ */
+export async function getShoppingList(
+	selections: readonly ResolvedSelection[]
+): Promise<GenerateResult> {
+	const key = await cacheKey(selections);
+
+	if (memo?.key === key) return memo.result;
+	if (inflight?.key === key) return inflight.promise;
+
+	const promise = run(selections).then((result) => {
+		memo = { key, result };
+		return result;
+	});
+
+	inflight = { key, promise };
+	try {
+		return await promise;
+	} finally {
+		if (inflight?.key === key) inflight = null;
+	}
+}

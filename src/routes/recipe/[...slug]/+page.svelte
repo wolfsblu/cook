@@ -15,4 +15,6 @@
 	stepImages={data.stepImages}
 	scale={data.scale}
 	slug={data.slug}
+	inShoppingList={data.inShoppingList}
+	listedScale={data.listedScale}
 />

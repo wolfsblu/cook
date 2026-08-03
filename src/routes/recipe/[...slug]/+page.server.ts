@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 import { getEntry } from '$lib/server/recipes/index.js';
 import { clampScale, getRecipeDisplay } from '$lib/server/recipes/parse.js';
 import { imageRef } from '$lib/server/images.js';
+import { readSelections } from '$lib/server/shopping/store.js';
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	// The slug is looked up in the index rather than joined onto a path. Nothing
@@ -14,10 +15,19 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	}
 
 	const scale = clampScale(url.searchParams.get('scale'));
-	const recipe = await getRecipeDisplay(entry, scale);
+	const [recipe, selections] = await Promise.all([
+		getRecipeDisplay(entry, scale),
+		readSelections()
+	]);
+
+	// Membership is resolved here rather than in a client store, so the button
+	// is correct on first paint instead of always reading "Add".
+	const selection = selections.find((s) => s.slug === entry.slug);
 
 	return {
 		recipe,
+		inShoppingList: selection !== undefined,
+		listedScale: selection?.scale ?? null,
 		image: imageRef(entry.image, 'hero'),
 		stepImages: Object.fromEntries(
 			Object.entries(entry.stepImages).map(([step, image]) => [step, imageRef(image, 'step')])

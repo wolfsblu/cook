@@ -1,51 +1,29 @@
 /**
- * Frontend type definitions for shopping list feature
+ * Display types for the shopping list.
+ *
+ * Recipe selections are a server concern and live in
+ * $lib/server/shopping/store.ts; they are no longer modelled here, because the
+ * client no longer owns that state.
  */
 
-/**
- * Recipe selection for shopping list
- */
-export interface RecipeSelection {
-	slug: string; // "Easy Pancakes.cook"
-	title: string; // "Easy Pancakes" (for display)
-	scale: number; // 1.0, 2.0, etc.
-	servings?: number; // Original servings (for display)
-	imageUrl?: string; // Recipe image URL (for display)
-}
-
-/**
- * Shopping list item (single ingredient)
- */
+/** A single ingredient line. */
 export interface ShoppingListItem {
-	name: string; // "flour" (lowercase, internal)
-	displayName: string; // "Flour" (capitalized, for display)
-	quantity: string | null; // "250 g" or "2 cups and 1 tsp" or null
+	/** Lowercase name as the CLI emits it; used as a key. */
+	name: string;
+	displayName: string;
+	/** Formatted amount, e.g. "250 g" or "2 cups and 1 tsp". Null when unquantified. */
+	quantity: string | null;
 }
 
-/**
- * Shopping list category (e.g., "Produce", "Dairy")
- */
+/** A shop aisle, e.g. "fruit and veg". */
 export interface ShoppingListCategory {
-	name: string; // "produce", "other" (lowercase, internal)
-	displayName: string; // "Produce", "Other" (capitalized, for display)
+	name: string;
+	displayName: string;
 	items: ShoppingListItem[];
 }
 
-/**
- * Complete shopping list display data
- */
 export interface ShoppingListDisplay {
 	categories: ShoppingListCategory[];
 	recipeCount: number;
 	totalItems: number;
-}
-
-/**
- * Shopping list store state
- */
-export interface ShoppingListState {
-	selectedRecipes: RecipeSelection[];
-	shoppingList: ShoppingListDisplay | null;
-	loading: boolean;
-	error: string | null;
 }

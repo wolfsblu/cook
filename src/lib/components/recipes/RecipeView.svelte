@@ -13,6 +13,7 @@
 	import CookControlBar from './cook/CookControlBar.svelte';
 	import ActiveTimersPanel from './cook/ActiveTimersPanel.svelte';
 	import AddToShoppingListButton from '$lib/components/shopping/AddToShoppingListButton.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
 
 	interface Props {
 		recipe: RecipeDisplay;
@@ -235,22 +236,22 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-<article class="mx-auto max-w-4xl space-y-6 p-4 {cookMode ? 'pb-24' : ''}">
+<article class="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 {cookMode ? 'pb-28' : ''}">
 	<RecipeHeader {recipe} {image} />
 
 	<div class="flex flex-wrap items-center justify-between gap-4">
 		<ServingsControl baseServings={recipe.servings} {scale} onscale={handleScale} />
 		<div class="flex flex-wrap items-center gap-2">
 			<AddToShoppingListButton recipe={selection} />
-			<button class="btn preset-filled-primary-500" onclick={toggleCookMode}>
-				<CookingPotIcon size={16} />
-				{cookMode ? 'Exit Cook Mode' : 'Start Cooking'}
-			</button>
+			<Button variant={cookMode ? 'ghost' : 'primary'} onclick={toggleCookMode}>
+				<CookingPotIcon class="size-4" />
+				{cookMode ? 'Exit cook mode' : 'Start cooking'}
+			</Button>
 		</div>
 	</div>
 
 	<div class="grid gap-6 lg:grid-cols-[300px_1fr]">
-		<aside class="space-y-4 lg:sticky lg:top-4 lg:self-start">
+		<aside class="space-y-4 lg:sticky lg:top-20 lg:self-start">
 			<RecipeIngredients
 				ingredients={recipe.ingredients}
 				hoveredIndex={hoveredIngredientIndex}

@@ -1,7 +1,9 @@
 <script lang="ts">
-	import { Play, Pause, X } from '@lucide/svelte';
+	import { PauseIcon, PlayIcon, XIcon } from '@lucide/svelte';
 	import type { ActiveTimer } from '$lib/types/recipe';
 	import { formatTimeRemaining } from '$lib/utils/timer';
+	import Card from '$lib/components/ui/Card.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 	import TimerCircleProgress from './TimerCircleProgress.svelte';
 
 	interface Props {
@@ -20,52 +22,41 @@
 	const isPaused = $derived(timer.status === 'paused');
 </script>
 
-<div
-	class="card preset-outlined-surface-200-800 p-3 {isComplete
-		? 'preset-tonal-warning animate-pulse'
-		: ''}"
+<Card
+	variant="outline"
+	class="p-3 {isComplete ? 'bg-warn-soft text-warn-soft-fg border-warn animate-pulse' : ''}"
 >
 	<div class="flex items-center gap-3">
 		<TimerCircleProgress {progress} complete={isComplete} />
 
 		<div class="min-w-0 flex-1">
 			<p class="truncate font-medium">{timer.name}</p>
-			<p class="font-mono text-2xl {isComplete ? 'text-warning-600-400' : ''}">
+			<p class="text-2xl tabular-nums" aria-live={isComplete ? 'assertive' : 'off'}>
 				{formatTimeRemaining(timer.remainingSeconds)}
 			</p>
-			<p class="text-surface-500-500 text-xs">Step {timer.stepNumber}</p>
+			<p class="text-fg-subtle text-xs">Step {timer.stepNumber}</p>
 		</div>
 
 		<div class="flex flex-col gap-1">
 			{#if !isComplete}
 				{#if isPaused}
-					<button
-						type="button"
-						class="btn btn-sm preset-tonal-surface"
-						onclick={() => onresume(timer.id)}
-						aria-label="Resume timer"
-					>
-						<Play class="size-4" />
-					</button>
+					<IconButton size="sm" label="Resume {timer.name}" onclick={() => onresume(timer.id)}>
+						<PlayIcon class="size-4" />
+					</IconButton>
 				{:else}
-					<button
-						type="button"
-						class="btn btn-sm preset-tonal-surface"
-						onclick={() => onpause(timer.id)}
-						aria-label="Pause timer"
-					>
-						<Pause class="size-4" />
-					</button>
+					<IconButton size="sm" label="Pause {timer.name}" onclick={() => onpause(timer.id)}>
+						<PauseIcon class="size-4" />
+					</IconButton>
 				{/if}
 			{/if}
-			<button
-				type="button"
-				class="btn btn-sm preset-tonal-error"
+			<IconButton
+				size="sm"
+				variant="dangerSoft"
+				label="Cancel {timer.name}"
 				onclick={() => oncancel(timer.id)}
-				aria-label="Cancel timer"
 			>
-				<X class="size-4" />
-			</button>
+				<XIcon class="size-4" />
+			</IconButton>
 		</div>
 	</div>
-</div>
+</Card>

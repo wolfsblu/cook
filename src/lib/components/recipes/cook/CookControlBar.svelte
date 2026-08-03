@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { ChevronLeft, ChevronRight, Timer, Check, X } from '@lucide/svelte';
+	import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, TimerIcon, XIcon } from '@lucide/svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import IconButton from '$lib/components/ui/IconButton.svelte';
 
 	interface Props {
 		currentStep: number;
@@ -27,90 +29,69 @@
 </script>
 
 <div
-	class="bg-surface-100-900 border-surface-200-800 fixed right-0 bottom-0 left-0 z-30 border-t shadow-lg"
+	class="bg-surface border-border shadow-pop fixed right-0 bottom-0 left-0 z-30 border-t"
+	style="padding-bottom: env(safe-area-inset-bottom)"
 >
-	<!-- Progress bar -->
-	<div class="bg-surface-200-800 h-1">
+	<div
+		class="bg-surface-sunk h-1"
+		role="progressbar"
+		aria-label="Cooking progress"
+		aria-valuenow={currentStep}
+		aria-valuemin={1}
+		aria-valuemax={totalSteps}
+	>
 		<div
-			class="bg-primary-500 h-full transition-all duration-300"
+			class="bg-accent h-full transition-all duration-300"
 			style="width: {progressPercent}%"
 		></div>
 	</div>
 
 	<div class="flex items-center justify-between gap-4 px-4 py-3">
-		<!-- Previous button -->
-		<button
-			type="button"
-			class="btn preset-tonal-surface"
-			onclick={onprevious}
-			disabled={isFirstStep}
-			aria-label="Previous step"
-		>
-			<ChevronLeft class="size-5" />
+		<Button variant="ghost" onclick={onprevious} disabled={isFirstStep}>
+			<ChevronLeftIcon class="size-5" />
 			<span class="hidden sm:inline">Previous</span>
-		</button>
+		</Button>
 
-		<!-- Center section: Exit button, step counter and timer badge -->
-		<div class="flex items-center gap-4">
-			<button
-				type="button"
-				class="btn preset-tonal-surface size-9 p-0"
-				onclick={onfinish}
-				aria-label="Exit cook mode"
-			>
-				<X class="size-5" />
-			</button>
+		<div class="flex items-center gap-3">
+			<IconButton label="Exit cook mode" onclick={onfinish}>
+				<XIcon class="size-5" />
+			</IconButton>
 
-			<span class="text-sm font-medium">
+			<span class="text-sm font-medium tabular-nums">
 				Step {currentStep} of {totalSteps}
 			</span>
 
-			{#if activeTimerCount > 0}
-				<button
-					type="button"
-					class="btn preset-filled-warning relative size-9 p-0"
+			<span class="relative">
+				<IconButton
+					label={activeTimerCount > 0
+						? `Show ${activeTimerCount} active timer${activeTimerCount === 1 ? '' : 's'}`
+						: 'Show timers'}
+					variant={activeTimerCount > 0 ? 'primary' : 'ghost'}
 					onclick={ontoggletimers}
-					aria-label="Show active timers"
 				>
-					<Timer class="size-5" />
+					<TimerIcon class="size-5" />
+				</IconButton>
+				{#if activeTimerCount > 0}
 					<span
-						class="bg-error-500 absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-xs text-white"
-						>{activeTimerCount}</span
+						class="bg-warn text-warn-fg pointer-events-none absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full text-[0.625rem] font-semibold"
+						aria-hidden="true"
 					>
-				</button>
-			{:else}
-				<button
-					type="button"
-					class="btn preset-tonal-surface size-9 p-0 opacity-60"
-					onclick={ontoggletimers}
-					aria-label="Show timers panel"
-				>
-					<Timer class="size-5" />
-				</button>
-			{/if}
+						{activeTimerCount}
+					</span>
+				{/if}
+			</span>
 		</div>
 
-		<!-- Next/Finish button -->
 		{#if isLastStep}
-			<button
-				type="button"
-				class="btn preset-filled-success"
-				onclick={onfinish}
-				aria-label="Finish cooking"
-			>
-				<Check class="size-5" />
+			<Button onclick={onfinish}>
+				<CheckIcon class="size-5" />
 				<span class="hidden sm:inline">Finish</span>
-			</button>
+			</Button>
 		{:else}
-			<button
-				type="button"
-				class="btn preset-filled-primary"
-				onclick={onnext}
-				aria-label="Next step"
-			>
+			<Button onclick={onnext}>
 				<span class="hidden sm:inline">Next</span>
-				<ChevronRight class="size-5" />
-			</button>
+				<ChevronRightIcon class="size-5" />
+			</Button>
 		{/if}
 	</div>
 </div>

@@ -1,48 +1,62 @@
 import { browser } from '$app/environment';
 
-type Mode = 'light' | 'dark';
+export type ThemePreference = 'light' | 'dark' | 'system';
+export type ResolvedTheme = 'light' | 'dark';
 
-function createModeStore() {
-	let mode = $state<Mode>('light');
+const STORAGE_KEY = 'theme';
 
-	// Initialize mode from localStorage
+function systemTheme(): ResolvedTheme {
+	if (!browser) return 'light';
+	return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function readStored(): ThemePreference {
+	if (!browser) return 'system';
+	const stored = localStorage.getItem(STORAGE_KEY);
+	return stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system';
+}
+
+function apply(theme: ResolvedTheme) {
+	if (!browser) return;
+	document.documentElement.dataset.theme = theme;
+}
+
+function createThemeStore() {
+	let preference = $state<ThemePreference>(readStored());
+	let system = $state<ResolvedTheme>(systemTheme());
+
 	if (browser) {
-		const stored = localStorage.getItem('mode') as Mode | null;
-		if (stored) {
-			mode = stored;
-			applyMode(stored);
-		} else {
-			applyMode('light');
-		}
+		// Follow the OS while the preference is "system".
+		const query = window.matchMedia('(prefers-color-scheme: dark)');
+		query.addEventListener('change', (event) => {
+			system = event.matches ? 'dark' : 'light';
+			if (preference === 'system') apply(system);
+		});
 	}
 
-	function applyMode(newMode: Mode) {
-		if (!browser) return;
-
-		// Skeleton UI uses both data-mode attribute and color-scheme property
-		document.documentElement.setAttribute('data-mode', newMode);
-		document.documentElement.style.colorScheme = newMode;
-	}
+	const resolved = $derived<ResolvedTheme>(preference === 'system' ? system : preference);
 
 	return {
-		get current() {
-			return mode;
+		get preference() {
+			return preference;
+		},
+		get resolved() {
+			return resolved;
+		},
+		get isDark() {
+			return resolved === 'dark';
+		},
+		set(next: ThemePreference) {
+			preference = next;
+			if (browser) {
+				localStorage.setItem(STORAGE_KEY, next);
+				apply(next === 'system' ? system : next);
+			}
 		},
 		toggle() {
-			mode = mode === 'light' ? 'dark' : 'light';
-			if (browser) {
-				localStorage.setItem('mode', mode);
-				applyMode(mode);
-			}
-		},
-		set(newMode: Mode) {
-			mode = newMode;
-			if (browser) {
-				localStorage.setItem('mode', mode);
-				applyMode(mode);
-			}
+			this.set(resolved === 'dark' ? 'light' : 'dark');
 		}
 	};
 }
 
-export const modeStore = createModeStore();
+export const themeStore = createThemeStore();

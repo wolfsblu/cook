@@ -1,13 +1,18 @@
 <!doctype html>
-<html lang="en" data-theme="hamlindigo">
+<html lang="en" data-theme="light">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="color-scheme" content="light dark" />
 		<script>
-			// Initialize mode before page renders to prevent flash
-			const mode = localStorage.getItem('mode') || 'light';
-			document.documentElement.setAttribute('data-mode', mode);
-			document.documentElement.style.colorScheme = mode;
+			// Set the theme before first paint. This is the only copy; it used to
+			// be duplicated in +layout.svelte, where it ran too late to help.
+			(() => {
+				const stored = localStorage.getItem('theme');
+				const system = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+				document.documentElement.dataset.theme =
+					stored === 'light' || stored === 'dark' ? stored : system;
+			})();
 		</script>
 		%sveltekit.head%
 	</head>

@@ -1,67 +1,51 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import {
-		ChefHatIcon,
-		ShoppingCartIcon,
-		RefrigeratorIcon,
-		SunIcon,
-		MoonIcon
-	} from '@lucide/svelte';
-	import { Navigation, Switch } from '@skeletonlabs/skeleton-svelte';
-	import { modeStore } from '$lib/stores/theme.svelte';
+	import Badge from '$lib/components/ui/Badge.svelte';
+	import { NAV_LINKS } from './links';
 
-	const links = [
-		{ label: 'Recipes', href: '/', icon: ChefHatIcon },
-		{ label: 'Shopping', href: '/shopping', icon: ShoppingCartIcon },
-		{ label: 'Pantry', href: '/pantry', icon: RefrigeratorIcon }
-	];
+	/**
+	 * Bottom tab bar. Shown only below the `md` breakpoint now -- it used to be
+	 * the navigation at every width, including on wide desktop screens.
+	 */
+	type Props = { shoppingCount?: number };
 
-	let checked = $state(false);
+	const { shoppingCount = 0 }: Props = $props();
 
-	$effect(() => {
-		checked = modeStore.current === 'dark';
-	});
-
-	const onCheckedChange = (event: { checked: boolean }) => {
-		const mode = event.checked ? 'dark' : 'light';
-		modeStore.set(mode);
-	};
-
-	function isLinkActive(currentPath: string, linkHref: string) {
-		if (linkHref === '/') return currentPath === '/';
-		return currentPath.startsWith(linkHref);
+	function isActive(href: string): boolean {
+		return href === '/' ? page.url.pathname === '/' : page.url.pathname.startsWith(href);
 	}
 </script>
 
-<Navigation layout="bar" class="shadow-[0px_-20px_20px_-15px_rgba(0,0,0,0.1)]">
-	<Navigation.Menu class="flex items-center justify-between px-2">
-		<div class="flex-1"></div>
-		<div class="flex gap-2">
-			{#each links as link (link)}
-				{@const isActive = isLinkActive(page.url.pathname, link.href)}
-				{@const Icon = link.icon}
-				<Navigation.TriggerAnchor
+<nav
+	class="border-border bg-surface/90 border-t backdrop-blur-md md:hidden"
+	style="padding-bottom: env(safe-area-inset-bottom)"
+	aria-label="Main"
+>
+	<ul class="flex">
+		{#each NAV_LINKS as link (link.href)}
+			{@const active = isActive(link.href)}
+			<li class="flex-1">
+				<a
 					href={link.href}
-					class={['transition-colors', isActive && 'bg-surface-300-700 text-primary-800-200']}
+					aria-current={active ? 'page' : undefined}
+					class="relative flex flex-col items-center gap-1 py-2 text-xs font-medium transition-colors duration-150 {active
+						? 'text-accent'
+						: 'text-fg-muted hover:text-fg'}"
 				>
-					<Icon class="size-5" />
-					<Navigation.TriggerText>{link.label}</Navigation.TriggerText>
-				</Navigation.TriggerAnchor>
-			{/each}
-		</div>
-		<div class="flex flex-1 items-center justify-end p-2">
-			<Switch {checked} {onCheckedChange}>
-				<Switch.Control>
-					<Switch.Thumb>
-						{#if checked}
-							<MoonIcon class="size-4" />
-						{:else}
-							<SunIcon class="size-4" />
+					<span class="relative">
+						<link.icon class="size-5" />
+						{#if link.href === '/shopping' && shoppingCount > 0}
+							<Badge
+								tone="accent"
+								class="absolute -top-1.5 -right-2.5 min-w-4 justify-center px-1 py-0 text-[0.625rem]"
+							>
+								{shoppingCount}
+							</Badge>
 						{/if}
-					</Switch.Thumb>
-				</Switch.Control>
-				<Switch.HiddenInput />
-			</Switch>
-		</div>
-	</Navigation.Menu>
-</Navigation>
+					</span>
+					{link.label}
+				</a>
+			</li>
+		{/each}
+	</ul>
+</nav>

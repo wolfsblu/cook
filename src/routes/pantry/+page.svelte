@@ -1,20 +1,22 @@
 <script lang="ts">
 	import { RefrigeratorIcon } from '@lucide/svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import EmptyState from '$lib/components/ui/EmptyState.svelte';
+	import Page from '$lib/components/ui/Page.svelte';
 </script>
 
 <svelte:head>
 	<title>Pantry</title>
 </svelte:head>
 
-<div class="container mx-auto px-4 py-6">
-	<div
-		class="card preset-outlined-surface-200-800 flex flex-col items-center gap-3 p-8 text-center"
+<Page title="Pantry">
+	<EmptyState
+		icon={RefrigeratorIcon}
+		title="Pantry tracking is not built yet"
+		description="Once it lands, anything you have in stock will be subtracted from your shopping list automatically."
 	>
-		<RefrigeratorIcon class="text-surface-600-400 size-10" />
-		<p class="text-surface-600-400">Pantry tracking is not built yet.</p>
-		<p class="text-sm">
-			Once it lands, stocked items will be subtracted from your
-			<a href="/shopping" class="anchor">shopping list</a> automatically.
-		</p>
-	</div>
-</div>
+		{#snippet actions()}
+			<Button href="/shopping" variant="outline">Go to shopping list</Button>
+		{/snippet}
+	</EmptyState>
+</Page>

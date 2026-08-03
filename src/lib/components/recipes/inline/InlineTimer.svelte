@@ -1,5 +1,6 @@
 <script lang="ts">
-	import { Timer } from '@lucide/svelte';
+	import { TimerIcon } from '@lucide/svelte';
+	import { highlightClass } from '../highlight';
 
 	interface Props {
 		name: string | null;
@@ -12,7 +13,7 @@
 
 	const { name, quantity, index = 0, cookMode = false, active = false, onstart }: Props = $props();
 
-	function handleClick() {
+	function start() {
 		if (cookMode && onstart && quantity) {
 			onstart(index, name ?? 'Timer', quantity);
 		}
@@ -22,18 +23,18 @@
 {#if cookMode}
 	<button
 		type="button"
-		class="timer inline-flex items-center gap-1 rounded px-1 transition-colors {active
-			? 'preset-tonal-warning'
-			: 'preset-tonal-tertiary hover:preset-filled-tertiary'} cursor-pointer"
-		onclick={handleClick}
-		aria-label="Start timer: {name ?? ''} {quantity ?? ''}"
+		class="inline-flex cursor-pointer items-center gap-1 rounded-sm px-1 transition-colors duration-150 {active
+			? highlightClass('timing')
+			: 'bg-surface-muted text-fg-muted hover:bg-warn-soft hover:text-warn-soft-fg'}"
+		onclick={start}
+		aria-label="Start timer{name ? `: ${name}` : ''}{quantity ? ` for ${quantity}` : ''}"
 	>
-		<Timer class="size-3" />
+		<TimerIcon class="size-3" />
 		{#if name}<span class="font-medium">{name}:</span>{/if}
 		{#if quantity}<span>{quantity}</span>{/if}
 	</button>
 {:else}
-	<span class="timer text-tertiary-600-400 italic">
+	<span class="text-fg-muted italic">
 		{#if name}<span class="font-medium">{name}:</span>{/if}
 		{#if quantity}<span>{quantity}</span>{/if}
 	</span>

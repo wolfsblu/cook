@@ -1,0 +1,247 @@
+/**
+ * Design tokens.
+ *
+ * Two layers, and the second one is the point:
+ *
+ *   1. Ramps in `@theme` -- raw colour scales, mode-agnostic.
+ *   2. Roles as custom properties, swapped wholesale by [data-theme], then
+ *      re-exported through `@theme inline`.
+ *
+ * Because `@theme inline` re-exports the *variable* rather than its value,
+ * `bg-surface` resolves the role at use site. Light and dark therefore work
+ * with no `dark:` variants anywhere in the markup -- the ergonomics Skeleton's
+ * `-100-900` pairs used to provide, without Skeleton.
+ *
+ * Write markup against roles (`bg-surface`, `text-fg-muted`, `bg-accent`), not
+ * ramps. Reach for a ramp value only when a colour must stay fixed across
+ * modes, such as a scrim sitting on a photograph.
+ */
+
+@theme {
+	/* Brand: paprika. Warm, food-adjacent, and distinct from the blue-grey
+	   default that made the old theme look like a dashboard. */
+	--color-brand-50: oklch(0.971 0.014 39);
+	--color-brand-100: oklch(0.94 0.032 39);
+	--color-brand-200: oklch(0.885 0.062 39);
+	--color-brand-300: oklch(0.816 0.1 38);
+	--color-brand-400: oklch(0.735 0.14 36);
+	--color-brand-500: oklch(0.66 0.168 34);
+	--color-brand-600: oklch(0.586 0.163 32);
+	--color-brand-700: oklch(0.502 0.14 31);
+	--color-brand-800: oklch(0.42 0.112 31);
+	--color-brand-900: oklch(0.352 0.086 32);
+	--color-brand-950: oklch(0.238 0.058 33);
+
+	/* Herb: the secondary accent, used for "this is the current step". */
+	--color-herb-50: oklch(0.972 0.02 150);
+	--color-herb-200: oklch(0.88 0.07 150);
+	--color-herb-400: oklch(0.73 0.13 149);
+	--color-herb-600: oklch(0.56 0.115 148);
+	--color-herb-800: oklch(0.395 0.078 149);
+	--color-herb-950: oklch(0.23 0.045 150);
+
+	/* Neutrals carry a trace of warmth (hue 75) so they sit with the brand
+	   instead of fighting it. */
+	--color-neutral-0: oklch(1 0 0);
+	--color-neutral-50: oklch(0.985 0.002 75);
+	--color-neutral-100: oklch(0.968 0.003 75);
+	--color-neutral-200: oklch(0.928 0.004 75);
+	--color-neutral-300: oklch(0.872 0.005 75);
+	--color-neutral-400: oklch(0.716 0.006 75);
+	--color-neutral-500: oklch(0.57 0.007 75);
+	--color-neutral-600: oklch(0.455 0.007 75);
+	--color-neutral-700: oklch(0.375 0.007 75);
+	--color-neutral-800: oklch(0.278 0.006 75);
+	--color-neutral-850: oklch(0.232 0.006 75);
+	--color-neutral-900: oklch(0.196 0.005 75);
+	--color-neutral-950: oklch(0.147 0.004 75);
+
+	/* Status ramps: only the stops actually used. */
+	--color-danger-100: oklch(0.93 0.038 25);
+	--color-danger-500: oklch(0.628 0.21 25);
+	--color-danger-700: oklch(0.5 0.17 25);
+	--color-danger-950: oklch(0.24 0.07 25);
+
+	--color-warn-100: oklch(0.95 0.055 85);
+	--color-warn-500: oklch(0.76 0.15 78);
+	--color-warn-700: oklch(0.59 0.125 70);
+	--color-warn-950: oklch(0.26 0.055 75);
+
+	--color-ok-100: oklch(0.94 0.045 155);
+	--color-ok-500: oklch(0.68 0.145 152);
+	--color-ok-700: oklch(0.52 0.115 152);
+	--color-ok-950: oklch(0.24 0.05 152);
+
+	/* Type scale. Generous line heights: recipe steps are read at arm's
+	   length, often in a kitchen. */
+	--text-2xs: 0.6875rem;
+	--text-2xs--line-height: 1rem;
+	--text-xs: 0.75rem;
+	--text-xs--line-height: 1.1rem;
+	--text-sm: 0.875rem;
+	--text-sm--line-height: 1.35rem;
+	--text-base: 1rem;
+	--text-base--line-height: 1.625rem;
+	--text-lg: 1.125rem;
+	--text-lg--line-height: 1.75rem;
+	--text-xl: 1.25rem;
+	--text-xl--line-height: 1.75rem;
+	--text-2xl: 1.5rem;
+	--text-2xl--line-height: 1.95rem;
+	--text-3xl: 1.875rem;
+	--text-3xl--line-height: 2.25rem;
+	--text-4xl: 2.25rem;
+	--text-4xl--line-height: 2.5rem;
+
+	--font-sans:
+		ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+
+	--radius-xs: 0.25rem;
+	--radius-sm: 0.375rem;
+	--radius-md: 0.5rem;
+	--radius-lg: 0.75rem;
+	--radius-xl: 1rem;
+	--radius-2xl: 1.5rem;
+
+	--shadow-card: 0 1px 2px oklch(0 0 0 / 0.05), 0 1px 3px oklch(0 0 0 / 0.06);
+	--shadow-pop: 0 8px 24px oklch(0 0 0 / 0.14);
+
+	/* Shell metrics, shared between the rail and the layout grid. */
+	--spacing-rail: 4.5rem;
+	--spacing-sidebar: 15rem;
+}
+
+:root,
+[data-theme='light'] {
+	--role-canvas: var(--color-neutral-50);
+	--role-surface: var(--color-neutral-0);
+	--role-surface-muted: var(--color-neutral-100);
+	--role-surface-sunk: var(--color-neutral-200);
+
+	--role-border: var(--color-neutral-200);
+	--role-border-strong: var(--color-neutral-300);
+
+	--role-fg: var(--color-neutral-900);
+	--role-fg-muted: var(--color-neutral-600);
+	--role-fg-subtle: var(--color-neutral-500);
+
+	--role-accent: var(--color-brand-600);
+	--role-accent-hover: var(--color-brand-700);
+	--role-accent-fg: var(--color-neutral-0);
+	--role-accent-soft: var(--color-brand-100);
+	--role-accent-soft-fg: var(--color-brand-800);
+
+	--role-accent2: var(--color-herb-600);
+	--role-accent2-soft: var(--color-herb-50);
+	--role-accent2-soft-fg: var(--color-herb-800);
+
+	--role-danger: var(--color-danger-500);
+	--role-danger-fg: var(--color-neutral-0);
+	--role-danger-soft: var(--color-danger-100);
+	--role-danger-soft-fg: var(--color-danger-700);
+
+	--role-warn: var(--color-warn-500);
+	--role-warn-fg: var(--color-neutral-950);
+	--role-warn-soft: var(--color-warn-100);
+	--role-warn-soft-fg: var(--color-warn-700);
+
+	--role-ok: var(--color-ok-500);
+	--role-ok-fg: var(--color-neutral-0);
+	--role-ok-soft: var(--color-ok-100);
+	--role-ok-soft-fg: var(--color-ok-700);
+
+	--role-ring: var(--color-brand-500);
+	--role-overlay: oklch(0 0 0 / 0.45);
+
+	color-scheme: light;
+}
+
+[data-theme='dark'] {
+	--role-canvas: var(--color-neutral-950);
+	--role-surface: var(--color-neutral-900);
+	--role-surface-muted: var(--color-neutral-850);
+	--role-surface-sunk: var(--color-neutral-950);
+
+	--role-border: var(--color-neutral-800);
+	--role-border-strong: var(--color-neutral-700);
+
+	--role-fg: var(--color-neutral-50);
+	--role-fg-muted: var(--color-neutral-400);
+	--role-fg-subtle: var(--color-neutral-500);
+
+	/* Lighter brand stops on dark: the 600 that works on white does not carry
+	   enough contrast against a near-black canvas. */
+	--role-accent: var(--color-brand-400);
+	--role-accent-hover: var(--color-brand-300);
+	--role-accent-fg: var(--color-neutral-950);
+	--role-accent-soft: var(--color-brand-950);
+	--role-accent-soft-fg: var(--color-brand-200);
+
+	--role-accent2: var(--color-herb-400);
+	--role-accent2-soft: var(--color-herb-950);
+	--role-accent2-soft-fg: var(--color-herb-200);
+
+	--role-danger: var(--color-danger-500);
+	--role-danger-fg: var(--color-neutral-0);
+	--role-danger-soft: var(--color-danger-950);
+	--role-danger-soft-fg: var(--color-danger-100);
+
+	--role-warn: var(--color-warn-500);
+	--role-warn-fg: var(--color-neutral-950);
+	--role-warn-soft: var(--color-warn-950);
+	--role-warn-soft-fg: var(--color-warn-100);
+
+	--role-ok: var(--color-ok-500);
+	--role-ok-fg: var(--color-neutral-0);
+	--role-ok-soft: var(--color-ok-950);
+	--role-ok-soft-fg: var(--color-ok-100);
+
+	--role-ring: var(--color-brand-400);
+	--role-overlay: oklch(0 0 0 / 0.65);
+
+	color-scheme: dark;
+}
+
+/* Re-export roles as utilities. `inline` keeps the reference lazy, so these
+   follow [data-theme] rather than freezing at their light-mode values. */
+@theme inline {
+	--color-canvas: var(--role-canvas);
+	--color-surface: var(--role-surface);
+	--color-surface-muted: var(--role-surface-muted);
+	--color-surface-sunk: var(--role-surface-sunk);
+
+	--color-border: var(--role-border);
+	--color-border-strong: var(--role-border-strong);
+
+	--color-fg: var(--role-fg);
+	--color-fg-muted: var(--role-fg-muted);
+	--color-fg-subtle: var(--role-fg-subtle);
+
+	--color-accent: var(--role-accent);
+	--color-accent-hover: var(--role-accent-hover);
+	--color-accent-fg: var(--role-accent-fg);
+	--color-accent-soft: var(--role-accent-soft);
+	--color-accent-soft-fg: var(--role-accent-soft-fg);
+
+	--color-accent2: var(--role-accent2);
+	--color-accent2-soft: var(--role-accent2-soft);
+	--color-accent2-soft-fg: var(--role-accent2-soft-fg);
+
+	--color-danger: var(--role-danger);
+	--color-danger-fg: var(--role-danger-fg);
+	--color-danger-soft: var(--role-danger-soft);
+	--color-danger-soft-fg: var(--role-danger-soft-fg);
+
+	--color-warn: var(--role-warn);
+	--color-warn-fg: var(--role-warn-fg);
+	--color-warn-soft: var(--role-warn-soft);
+	--color-warn-soft-fg: var(--role-warn-soft-fg);
+
+	--color-ok: var(--role-ok);
+	--color-ok-fg: var(--role-ok-fg);
+	--color-ok-soft: var(--role-ok-soft);
+	--color-ok-soft-fg: var(--role-ok-soft-fg);
+
+	--color-ring: var(--role-ring);
+	--color-overlay: var(--role-overlay);
+}

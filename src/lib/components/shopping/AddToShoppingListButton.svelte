@@ -1,36 +1,30 @@
 <script lang="ts">
-	import { ShoppingCart, X } from '@lucide/svelte';
+	import { ShoppingCartIcon, XIcon } from '@lucide/svelte';
 	import { shoppingListStore } from '$lib/stores/shopping-list.svelte';
 	import type { RecipeSelection } from '$lib/types/shopping-list';
+	import Button from '$lib/components/ui/Button.svelte';
 
 	interface Props {
-		recipe: Omit<RecipeSelection, 'scale'>; // Recipe without scale (we'll add it)
+		recipe: Omit<RecipeSelection, 'scale'>;
 	}
 
 	let { recipe }: Props = $props();
 
-	let inList = $derived(shoppingListStore.hasRecipe(recipe.slug));
-
-	async function add() {
-		await shoppingListStore.addRecipe({
-			...recipe,
-			scale: 1
-		});
-	}
-
-	async function remove() {
-		await shoppingListStore.removeRecipe(recipe.slug);
-	}
+	const inList = $derived(shoppingListStore.hasRecipe(recipe.slug));
 </script>
 
 {#if inList}
-	<button class="btn preset-tonal-error" onclick={remove}>
-		<X size={20} />
-		Remove from Shopping List
-	</button>
+	<Button variant="dangerSoft" onclick={() => shoppingListStore.removeRecipe(recipe.slug)}>
+		<XIcon class="size-4" />
+		Remove from list
+	</Button>
 {:else}
-	<button class="btn preset-filled-primary-500" onclick={add}>
-		<ShoppingCart size={20} />
-		Add to Shopping List
-	</button>
+	<Button
+		variant="soft"
+		onclick={() => shoppingListStore.addRecipe({ ...recipe, scale: 1 })}
+		loading={shoppingListStore.isLoading}
+	>
+		<ShoppingCartIcon class="size-4" />
+		Add to list
+	</Button>
 {/if}

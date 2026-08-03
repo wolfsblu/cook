@@ -1,5 +1,7 @@
 <script lang="ts">
 	import type { IngredientDisplay } from '$lib/types/recipe';
+	import Card from '$lib/components/ui/Card.svelte';
+	import { highlightClass, resolveHighlight } from './highlight';
 
 	interface Props {
 		ingredients: IngredientDisplay[];
@@ -12,35 +14,38 @@
 </script>
 
 {#if ingredients.length > 0}
-	<div class="card preset-outlined-surface-200-800 p-4">
-		<h2 class="h4 mb-3">Ingredients</h2>
-		<ul class="space-y-2">
+	<Card variant="outline" class="p-4">
+		<h2 class="text-fg mb-3 text-lg font-semibold">Ingredients</h2>
+		<ul class="space-y-1">
 			{#each ingredients as ingredient (ingredient.index)}
-				{@const isHovered = hoveredIndex === ingredient.index}
-				{@const isActive = activeIndices?.has(ingredient.index) ?? false}
+				{@const state = resolveHighlight({
+					hovered: hoveredIndex === ingredient.index,
+					active: activeIndices?.has(ingredient.index) ?? false
+				})}
+				<!-- Hover cross-highlights the matching mention in the steps. It is a
+				     pointer affordance only, so it carries no role or tabindex: the
+				     ingredient text is already in the document for keyboard and
+				     screen reader users. -->
 				<li
-					class="flex cursor-pointer items-center justify-between gap-2 rounded px-2 py-1 transition-colors {isHovered
-						? 'preset-tonal-primary'
-						: isActive
-							? 'preset-tonal-secondary'
-							: ''}"
+					class="flex items-center justify-between gap-2 rounded-sm px-2 py-1 transition-colors duration-150 {highlightClass(
+						state
+					)}"
 					onmouseenter={() => onhover(ingredient.index)}
 					onmouseleave={() => onhover(null)}
-					role="listitem"
 				>
 					<span>
 						<span class="font-medium">{ingredient.name}</span>
 						{#if ingredient.note}
-							<span class="text-surface-500-500 text-sm italic"> ({ingredient.note})</span>
+							<span class="text-fg-subtle text-sm italic"> ({ingredient.note})</span>
 						{/if}
 					</span>
 					{#if ingredient.quantity}
-						<span class="text-surface-600-400 text-right whitespace-nowrap"
-							>{ingredient.quantity}</span
-						>
+						<span class="text-fg-muted text-right whitespace-nowrap tabular-nums">
+							{ingredient.quantity}
+						</span>
 					{/if}
 				</li>
 			{/each}
 		</ul>
-	</div>
+	</Card>
 {/if}

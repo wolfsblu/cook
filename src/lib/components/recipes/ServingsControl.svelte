@@ -9,7 +9,7 @@
 
 	let editing = $state(false);
 	let inputValue = $state('');
-	let inputRef: HTMLInputElement | null = $state(null);
+	let inputRef = $state<HTMLInputElement | null>(null);
 
 	const numericBase = $derived(
 		typeof baseServings === 'number'
@@ -21,36 +21,35 @@
 
 	const displayValue = $derived(numericBase ? Math.round(numericBase * scale) : `${scale}×`);
 
+	// Select the field once it exists, rather than guessing at the timing with
+	// setTimeout(…, 0) as this previously did.
+	$effect(() => {
+		if (editing) inputRef?.select();
+	});
+
 	function startEditing() {
 		editing = true;
 		inputValue = numericBase ? String(Math.round(numericBase * scale)) : String(scale);
-		// Focus after DOM updates
-		setTimeout(() => inputRef?.select(), 0);
 	}
 
 	function commit() {
 		const parsed = parseFloat(inputValue);
 		if (!isNaN(parsed) && parsed > 0) {
 			const newScale = numericBase ? parsed / numericBase : parsed;
-			if (newScale !== scale) {
-				onscale(newScale);
-			}
+			if (newScale !== scale) onscale(newScale);
 		}
 		editing = false;
 	}
 
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter') {
-			commit();
-		} else if (e.key === 'Escape') {
-			editing = false;
-		}
+	function handleKeydown(event: KeyboardEvent) {
+		if (event.key === 'Enter') commit();
+		else if (event.key === 'Escape') editing = false;
 	}
 </script>
 
 <div class="flex items-center gap-2">
-	<span class="text-surface-600-400">
-		{numericBase ? 'Servings:' : 'Scale:'}
+	<span class="text-fg-muted text-sm">
+		{numericBase ? 'Servings' : 'Scale'}
 	</span>
 
 	{#if editing}
@@ -60,12 +59,17 @@
 			type="number"
 			min="1"
 			step="1"
-			class="input w-20 px-2 py-1 text-center"
+			aria-label={numericBase ? 'Servings' : 'Scale'}
+			class="field w-20 py-1 text-center tabular-nums"
 			onblur={commit}
 			onkeydown={handleKeydown}
 		/>
 	{:else}
-		<button class="btn preset-tonal-primary px-3 py-1 font-medium" onclick={startEditing}>
+		<button
+			type="button"
+			class="bg-accent-soft text-accent-soft-fg hover:bg-accent-soft/70 rounded-md px-3 py-1 font-medium tabular-nums transition-colors duration-150"
+			onclick={startEditing}
+		>
 			{displayValue}
 		</button>
 	{/if}

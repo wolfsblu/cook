@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { ImageRef, RecipeDisplay } from '$lib/types/recipe';
+	import Badge from '$lib/components/ui/Badge.svelte';
 
 	interface Props {
 		recipe: RecipeDisplay;
@@ -27,23 +28,25 @@
 		/>
 	{/if}
 
-	<h1 class="h1">{recipe.title ?? 'Untitled Recipe'}</h1>
+	<h1 class="text-fg text-3xl font-semibold tracking-tight sm:text-4xl">
+		{recipe.title ?? 'Untitled Recipe'}
+	</h1>
 
 	{#if recipe.description}
-		<p class="text-surface-600-400">{recipe.description}</p>
+		<p class="text-fg-muted">{recipe.description}</p>
 	{/if}
 
 	{#if recipe.tags.length > 0}
-		<div class="flex flex-wrap gap-2">
+		<div class="flex flex-wrap gap-1.5">
 			{#each recipe.tags as tag (tag)}
-				<span class="badge preset-filled-surface-200-800">{tag}</span>
+				<Badge>{tag}</Badge>
 			{/each}
 		</div>
 	{/if}
 
-	<div class="text-surface-600-400 flex flex-wrap gap-4 text-sm">
+	<div class="text-fg-muted flex flex-wrap gap-x-4 gap-y-1 text-sm">
 		{#if recipe.source?.url}
-			<a href={recipe.source.url} class="anchor" target="_blank" rel="noopener">
+			<a href={recipe.source.url} class="link" target="_blank" rel="noopener noreferrer">
 				{recipe.source.name ?? 'Source'}
 			</a>
 		{:else if recipe.source?.name}
@@ -59,11 +62,9 @@
 				{#if typeof recipe.time === 'number'}
 					{recipe.time} min
 				{:else}
-					{#if recipe.time.prep_time}Prep: {recipe.time.prep_time} min{/if}
-					{#if recipe.time.prep_time && recipe.time.cook_time}
-						·
-					{/if}
-					{#if recipe.time.cook_time}Cook: {recipe.time.cook_time} min{/if}
+					{#if recipe.time.prep_time}Prep {recipe.time.prep_time} min{/if}
+					{#if recipe.time.prep_time && recipe.time.cook_time}·{/if}
+					{#if recipe.time.cook_time}Cook {recipe.time.cook_time} min{/if}
 				{/if}
 			</span>
 		{/if}

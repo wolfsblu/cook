@@ -22,7 +22,7 @@
 		fill="none"
 		stroke="currentColor"
 		stroke-width={strokeWidth}
-		class="text-surface-200-800"
+		class="text-surface-sunk"
 	/>
 	<!-- Progress circle -->
 	<circle
@@ -35,6 +35,6 @@
 		stroke-dasharray={circumference}
 		stroke-dashoffset={offset}
 		stroke-linecap="round"
-		class="transition-all duration-300 {complete ? 'text-warning-500' : 'text-primary-500'}"
+		class="transition-all duration-300 {complete ? 'text-warn' : 'text-accent'}"
 	/>
 </svg>

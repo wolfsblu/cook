@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/state';
-	import { Slider } from '@skeletonlabs/skeleton-svelte';
-	import { parseFilterParams, buildFilterUrl } from '$lib/utils/url-params';
-	import Sidebar from '$lib/components/ui/Sidebar.svelte';
-	import TagCombobox from '$lib/components/recipes/TagCombobox.svelte';
+	import Button from '$lib/components/ui/Button.svelte';
+	import Drawer from '$lib/components/ui/Drawer.svelte';
+	import MultiSelect from '$lib/components/ui/MultiSelect.svelte';
+	import RangeSlider from '$lib/components/ui/RangeSlider.svelte';
+	import Select from '$lib/components/ui/Select.svelte';
+	import { buildFilterUrl, parseFilterParams } from '$lib/utils/url-params';
 
 	type Props = {
 		isOpen: boolean;
@@ -15,181 +17,116 @@
 
 	let { isOpen = $bindable(), allTags, allCourses }: Props = $props();
 
-	const availableTags = $derived(allTags);
-	const availableCourses = $derived(allCourses);
-
-	// Initialize filter state from URL
-	const urlFilters = $derived(parseFilterParams(page.url.searchParams));
-	let selectedTags = $state<string[]>([...urlFilters.tags]);
-	let selectedCourse = $state<string | null>(urlFilters.course);
-
-	// Constants for slider ranges
-	const TIME_MAX = 180; // 3 hours
+	/** Slider ceilings; at the top of the range the filter means "no upper bound". */
+	const TIME_MAX = 180;
 	const SERVINGS_MAX = 12;
 
-	// Time range as array [min, max] for dual-thumb slider
-	let timeRange = $state<number[]>([
-		urlFilters.timeRange.min,
-		urlFilters.timeRange.max === Infinity ? TIME_MAX : urlFilters.timeRange.max
+	let selectedTags = $state<string[]>([]);
+	let selectedCourse = $state('');
+	let timeRange = $state<number[]>([0, TIME_MAX]);
+	let servingsRange = $state<number[]>([0, SERVINGS_MAX]);
+
+	const courseOptions = $derived([
+		{ value: '', label: 'Any course' },
+		...allCourses.map((course) => ({ value: course, label: course }))
 	]);
 
-	// Servings range as array [min, max] for dual-thumb slider
-	let servingsRange = $state<number[]>([
-		urlFilters.servingsRange.min,
-		urlFilters.servingsRange.max === Infinity ? SERVINGS_MAX : urlFilters.servingsRange.max
-	]);
-
-	// Reset filters when drawer opens (sync with URL)
+	// Sync from the URL whenever the drawer opens, so it always reflects the
+	// filters currently applied rather than whatever was last typed into it.
 	$effect(() => {
-		if (isOpen) {
-			const current = parseFilterParams(page.url.searchParams);
-			selectedTags = [...current.tags];
-			selectedCourse = current.course;
-			timeRange = [
-				current.timeRange.min,
-				current.timeRange.max === Infinity ? TIME_MAX : current.timeRange.max
-			];
-			servingsRange = [
-				current.servingsRange.min,
-				current.servingsRange.max === Infinity ? SERVINGS_MAX : current.servingsRange.max
-			];
-		}
+		if (!isOpen) return;
+
+		const current = parseFilterParams(page.url.searchParams);
+		selectedTags = [...current.tags];
+		selectedCourse = current.course ?? '';
+		timeRange = [
+			current.timeRange.min,
+			current.timeRange.max === Infinity ? TIME_MAX : current.timeRange.max
+		];
+		servingsRange = [
+			current.servingsRange.min,
+			current.servingsRange.max === Infinity ? SERVINGS_MAX : current.servingsRange.max
+		];
 	});
 
-	function applyFilters() {
-		const searchQuery = page.url.searchParams.get('q') || '';
-		const sortField = page.url.searchParams.get('sort') || 'name';
-		const sortOrder = (page.url.searchParams.get('order') || 'asc') as 'asc' | 'desc';
-
-		const filters = {
-			tags: selectedTags,
-			course: selectedCourse,
-			timeRange: {
-				min: timeRange[0],
-				max: timeRange[1] >= TIME_MAX ? Infinity : timeRange[1]
+	function apply() {
+		const url = buildFilterUrl(
+			page.url.searchParams.get('q') || '',
+			{
+				tags: selectedTags,
+				course: selectedCourse || null,
+				timeRange: {
+					min: timeRange[0],
+					max: timeRange[1] >= TIME_MAX ? Infinity : timeRange[1]
+				},
+				servingsRange: {
+					min: servingsRange[0],
+					max: servingsRange[1] >= SERVINGS_MAX ? Infinity : servingsRange[1]
+				}
 			},
-			servingsRange: {
-				min: servingsRange[0],
-				max: servingsRange[1] >= SERVINGS_MAX ? Infinity : servingsRange[1]
-			}
-		};
+			page.url.searchParams.get('sort') || 'name',
+			(page.url.searchParams.get('order') || 'asc') as 'asc' | 'desc'
+		);
 
-		const url = buildFilterUrl(searchQuery, filters, sortField, sortOrder);
 		goto(url);
 		isOpen = false;
 	}
 
-	function clearFilters() {
+	function clear() {
 		selectedTags = [];
-		selectedCourse = null;
+		selectedCourse = '';
 		timeRange = [0, TIME_MAX];
 		servingsRange = [0, SERVINGS_MAX];
 	}
-
-	function close() {
-		isOpen = false;
-	}
 </script>
 
-<!-- Grid-based drawer layout - fills parent container -->
-<div class="grid h-full grid-cols-[auto_1fr]">
-	<Sidebar title="Filter Recipes" position="left" onclose={close}>
-		{#snippet children()}
-			<div class="space-y-6">
-				<!-- Tags Filter -->
-				{#if availableTags.length > 0}
-					<div>
-						<h3 class="mb-2 font-medium">Tags</h3>
-						<TagCombobox bind:selectedTags {availableTags} />
-					</div>
-				{/if}
-
-				<!-- Course Filter -->
-				{#if availableCourses.length > 0}
-					<div>
-						<h3 class="mb-2 font-medium">Course</h3>
-						<select bind:value={selectedCourse} class="input w-full">
-							<option value={null}>Any course</option>
-							{#each availableCourses as course (course)}
-								<option value={course}>{course}</option>
-							{/each}
-						</select>
-					</div>
-				{/if}
-
-				<!-- Time Range Filter -->
-				<div>
-					<div class="mb-3 flex items-center justify-between">
-						<h3 class="font-medium">Cooking Time</h3>
-						<span class="text-surface-600-400 text-sm">
-							{timeRange[0]}–{timeRange[1] >= TIME_MAX ? '180+' : timeRange[1]} min
-						</span>
-					</div>
-					<Slider
-						value={timeRange}
-						onValueChange={(v) => (timeRange = v.value)}
-						min={0}
-						max={TIME_MAX}
-						step={5}
-					>
-						<Slider.Control>
-							<Slider.Track>
-								<Slider.Range />
-							</Slider.Track>
-							<Slider.Thumb index={0}>
-								<Slider.HiddenInput />
-							</Slider.Thumb>
-							<Slider.Thumb index={1}>
-								<Slider.HiddenInput />
-							</Slider.Thumb>
-						</Slider.Control>
-					</Slider>
-				</div>
-
-				<!-- Servings Range Filter -->
-				<div>
-					<div class="mb-3 flex items-center justify-between">
-						<h3 class="font-medium">Servings</h3>
-						<span class="text-surface-600-400 text-sm">
-							{servingsRange[0]}–{servingsRange[1] >= SERVINGS_MAX ? '12+' : servingsRange[1]}
-						</span>
-					</div>
-					<Slider
-						value={servingsRange}
-						onValueChange={(v) => (servingsRange = v.value)}
-						min={0}
-						max={SERVINGS_MAX}
-						step={1}
-					>
-						<Slider.Control>
-							<Slider.Track>
-								<Slider.Range />
-							</Slider.Track>
-							<Slider.Thumb index={0}>
-								<Slider.HiddenInput />
-							</Slider.Thumb>
-							<Slider.Thumb index={1}>
-								<Slider.HiddenInput />
-							</Slider.Thumb>
-						</Slider.Control>
-					</Slider>
-				</div>
+<Drawer bind:open={isOpen} title="Filter recipes">
+	<div class="space-y-6">
+		{#if allTags.length > 0}
+			<div>
+				<h3 class="text-fg mb-2 text-sm font-medium">Tags</h3>
+				<MultiSelect bind:selected={selectedTags} options={allTags} label="Tags" />
 			</div>
-		{/snippet}
+		{/if}
 
-		{#snippet footer()}
-			<div class="flex gap-2">
-				<button type="button" onclick={clearFilters} class="btn preset-tonal-surface flex-1">
-					Clear
-				</button>
-				<button type="button" onclick={applyFilters} class="btn preset-filled-primary-500 flex-1">
-					Apply Filters
-				</button>
+		{#if allCourses.length > 0}
+			<div>
+				<h3 class="text-fg mb-2 text-sm font-medium">Course</h3>
+				<Select bind:value={selectedCourse} options={courseOptions} label="Course" />
 			</div>
-		{/snippet}
-	</Sidebar>
+		{/if}
 
-	<!-- Backdrop -->
-	<button type="button" class="bg-black/50" onclick={close} aria-label="Close filter drawer"
-	></button>
-</div>
+		<div>
+			<div class="mb-2 flex items-center justify-between">
+				<h3 class="text-fg text-sm font-medium">Cooking time</h3>
+				<span class="text-fg-muted text-sm tabular-nums">
+					{timeRange[0]}–{timeRange[1] >= TIME_MAX ? '180+' : timeRange[1]} min
+				</span>
+			</div>
+			<RangeSlider bind:value={timeRange} min={0} max={TIME_MAX} step={5} label="Cooking time" />
+		</div>
+
+		<div>
+			<div class="mb-2 flex items-center justify-between">
+				<h3 class="text-fg text-sm font-medium">Servings</h3>
+				<span class="text-fg-muted text-sm tabular-nums">
+					{servingsRange[0]}–{servingsRange[1] >= SERVINGS_MAX ? '12+' : servingsRange[1]}
+				</span>
+			</div>
+			<RangeSlider
+				bind:value={servingsRange}
+				min={0}
+				max={SERVINGS_MAX}
+				step={1}
+				label="Servings"
+			/>
+		</div>
+	</div>
+
+	{#snippet footer()}
+		<div class="flex gap-2">
+			<Button variant="ghost" block onclick={clear}>Clear</Button>
+			<Button block onclick={apply}>Apply</Button>
+		</div>
+	{/snippet}
+</Drawer>

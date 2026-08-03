@@ -1,0 +1,177 @@
+@import 'tailwindcss';
+@import './lib/styles/theme.css';
+
+@plugin '@tailwindcss/forms';
+
+/* Theme is an attribute rather than a media query, so the toggle can override
+   the system preference. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+@layer base {
+	html {
+		background-color: var(--color-canvas);
+		-webkit-text-size-adjust: 100%;
+	}
+
+	body {
+		background-color: var(--color-canvas);
+		color: var(--color-fg);
+		font-family: var(--font-sans);
+		-webkit-font-smoothing: antialiased;
+	}
+
+	/* One focus treatment everywhere, visible in both modes. */
+	:focus-visible {
+		outline: 2px solid var(--color-ring);
+		outline-offset: 2px;
+	}
+
+	::selection {
+		background-color: var(--color-accent-soft);
+		color: var(--color-accent-soft-fg);
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		text-wrap: balance;
+	}
+
+	/* Respect the OS setting rather than animating regardless. */
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+			scroll-behavior: auto !important;
+		}
+	}
+}
+
+@layer utilities {
+	/* Overlay and panel animations, driven by the data-state Bits UI sets.
+	   These are CSS rather than Svelte transitions on purpose: Bits keeps the
+	   content `inert` until its animation completes, and a Svelte transition
+	   never signals completion, which leaves focus trapping, Escape and scroll
+	   lock permanently disabled. */
+
+	@keyframes anim-fade-in {
+		from {
+			opacity: 0;
+		}
+	}
+	@keyframes anim-fade-out {
+		to {
+			opacity: 0;
+		}
+	}
+
+	.anim-fade[data-state='open'] {
+		animation: anim-fade-in 150ms ease-out;
+	}
+	.anim-fade[data-state='closed'] {
+		animation: anim-fade-out 150ms ease-in;
+	}
+
+	@keyframes anim-slide-in-left {
+		from {
+			transform: translateX(-100%);
+		}
+	}
+	@keyframes anim-slide-out-left {
+		to {
+			transform: translateX(-100%);
+		}
+	}
+
+	.anim-slide-left[data-state='open'] {
+		animation: anim-slide-in-left 200ms cubic-bezier(0.32, 0.72, 0, 1);
+	}
+	.anim-slide-left[data-state='closed'] {
+		animation: anim-slide-out-left 200ms cubic-bezier(0.32, 0.72, 0, 1);
+	}
+
+	@keyframes anim-slide-in-right {
+		from {
+			transform: translateX(100%);
+		}
+	}
+	@keyframes anim-slide-out-right {
+		to {
+			transform: translateX(100%);
+		}
+	}
+
+	.anim-slide-right[data-state='open'] {
+		animation: anim-slide-in-right 200ms cubic-bezier(0.32, 0.72, 0, 1);
+	}
+	.anim-slide-right[data-state='closed'] {
+		animation: anim-slide-out-right 200ms cubic-bezier(0.32, 0.72, 0, 1);
+	}
+
+	/* Centred dialogs are already translated to centre themselves, so the
+	   scale has to be composed with that rather than replacing it. */
+	@keyframes anim-pop-in {
+		from {
+			opacity: 0;
+			transform: translate(-50%, -50%) scale(0.96);
+		}
+	}
+	@keyframes anim-pop-out {
+		to {
+			opacity: 0;
+			transform: translate(-50%, -50%) scale(0.96);
+		}
+	}
+
+	.anim-pop[data-state='open'] {
+		animation: anim-pop-in 150ms ease-out;
+	}
+	.anim-pop[data-state='closed'] {
+		animation: anim-pop-out 150ms ease-in;
+	}
+}
+
+@layer components {
+	/* The only global classes. Everything else is a component with typed
+	   variants, so a style has exactly one definition and cannot drift the way
+	   `preset-filled-primary` and `preset-filled-primary-500` did. */
+
+	.field {
+		width: 100%;
+		border-radius: var(--radius-md);
+		border: 1px solid var(--color-border);
+		background-color: var(--color-surface);
+		padding: 0.5rem 0.75rem;
+		font-size: var(--text-sm);
+		color: var(--color-fg);
+		transition:
+			border-color 150ms,
+			box-shadow 150ms;
+	}
+
+	.field::placeholder {
+		color: var(--color-fg-subtle);
+	}
+
+	.field:focus {
+		border-color: var(--color-accent);
+		outline: none;
+		box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-accent) 25%, transparent);
+	}
+
+	.link {
+		color: var(--color-accent);
+		text-decoration: underline;
+		text-underline-offset: 2px;
+	}
+
+	.link:hover {
+		color: var(--color-accent-hover);
+	}
+}

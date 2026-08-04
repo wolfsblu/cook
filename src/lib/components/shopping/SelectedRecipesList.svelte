@@ -2,7 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { MinusIcon, PlusIcon, Trash2Icon } from '@lucide/svelte';
 	import type { ResolvedSelection } from '$lib/server/shopping/store';
-	import { formatScale } from '$lib/utils/scale';
+	import { formatScale, stepScaleDown, stepScaleUp } from '$lib/utils/scale';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
@@ -59,7 +59,7 @@
 						<div class="border-border flex items-center gap-1 rounded-md border px-1 py-0.5">
 							<form method="POST" action="?/setScale" use:enhance>
 								<input type="hidden" name="slug" value={selection.slug} />
-								<input type="hidden" name="scale" value={selection.scale - 0.5} />
+								<input type="hidden" name="scale" value={stepScaleDown(selection.scale)} />
 								<IconButton
 									type="submit"
 									size="sm"
@@ -76,7 +76,7 @@
 
 							<form method="POST" action="?/setScale" use:enhance>
 								<input type="hidden" name="slug" value={selection.slug} />
-								<input type="hidden" name="scale" value={selection.scale + 0.5} />
+								<input type="hidden" name="scale" value={stepScaleUp(selection.scale)} />
 								<IconButton type="submit" size="sm" label="Increase {selection.title}">
 									<PlusIcon class="size-3.5" />
 								</IconButton>

@@ -6,6 +6,15 @@
  * client no longer owns that state.
  */
 
+/**
+ * The category the CLI emits for anything aisle.conf could not place.
+ *
+ * Lives here rather than beside sortByAisle so the display component can import
+ * it too -- it decides which items get an "assign an aisle" control, and
+ * components cannot import from $lib/server.
+ */
+export const UNCATEGORIZED = 'other';
+
 /** A single ingredient line. */
 export interface ShoppingListItem {
 	/** Lowercase name as the CLI emits it; used as a key. */

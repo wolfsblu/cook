@@ -9,70 +9,20 @@
  *
  * Sections are read in file order instead. That is already the order someone
  * walks a shop in, and it stays correct when the config is edited.
+ *
+ * Reading and caching the file itself belongs to $lib/server/aisle, which owns
+ * the format. This module used to scrape the section headers with its own
+ * regex, which meant two parsers for one file and no way for the app to read
+ * the ingredients underneath them.
  */
 
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { config } from '../config.js';
+import { categoryOrder } from '../aisle/format.js';
+import { readAisle } from '../aisle/store.js';
+import { UNCATEGORIZED } from '$lib/types/shopping-list.js';
 
-/** Categories the CLI emits for anything it could not place. */
-const UNCATEGORIZED = 'other';
-
-interface AisleCache {
-	mtimeMs: number;
-	order: Map<string, number>;
-}
-
-let cache: AisleCache | null = null;
-
-function aisleConfigPath(): string {
-	return path.join(config.RECIPE_PATH, 'config', 'aisle.conf');
-}
-
-/** Parse section headers, keeping the order they appear in. */
-function parseSections(text: string): Map<string, number> {
-	const order = new Map<string, number>();
-
-	for (const line of text.split(/\r?\n/)) {
-		const match = line.trim().match(/^\[(.+)\]$/);
-		if (match) {
-			const name = match[1].trim().toLowerCase();
-			if (!order.has(name)) order.set(name, order.size);
-		}
-	}
-
-	return order;
-}
-
-/**
- * Section order from the aisle config, cached against the file's mtime so an
- * edit is picked up without a restart and an unchanged file is not re-read.
- */
-export async function getAisleOrder(): Promise<Map<string, number>> {
-	const filePath = aisleConfigPath();
-
-	try {
-		const stat = await fs.stat(filePath);
-		const mtimeMs = Math.round(stat.mtimeMs);
-
-		if (cache && cache.mtimeMs === mtimeMs) return cache.order;
-
-		const text = await fs.readFile(filePath, 'utf8');
-		cache = { mtimeMs, order: parseSections(text) };
-		return cache.order;
-	} catch {
-		// No aisle config: the CLI puts everything in "other" and order is moot.
-		return new Map();
-	}
-}
-
-/** mtime of the aisle config, for cache keys. Zero when absent. */
-export async function aisleMtimeMs(): Promise<number> {
-	try {
-		return Math.round((await fs.stat(aisleConfigPath())).mtimeMs);
-	} catch {
-		return 0;
-	}
+/** Section order from the aisle config. Empty when the file is absent. */
+export async function getAisleOrder(): Promise<ReadonlyMap<string, number>> {
+	return categoryOrder(await readAisle());
 }
 
 /**

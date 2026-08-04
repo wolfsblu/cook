@@ -94,6 +94,71 @@ try {
 		categories.join(', ')
 	);
 
+	// The aisles page edits this file, so the grammar it writes has to be the
+	// grammar the CLI reads. The file is replaced outright rather than appended
+	// to, so the result cannot depend on whatever the real config contains.
+	const aislePath = path.join(work, 'config', 'aisle.conf');
+	const originalAisle = await readFile(aislePath, 'utf8');
+
+	const categoryOf = (json, ingredient) => {
+		try {
+			return (
+				JSON.parse(json).find((c) => c.items.some((i) => new RegExp(ingredient, 'i').test(i.name)))
+					?.category ?? null
+			);
+		} catch {
+			return null;
+		}
+	};
+
+	await writeFile(aislePath, '[smoke aisle]\nflour|plain flour\n');
+	const aliased = await run(
+		['shopping-list', './Breakfast/Easy Pancakes.cook', '-f', 'json'],
+		work
+	);
+	check(
+		'a | alias line categorises under the first name',
+		categoryOf(aliased.stdout, 'flour') === 'smoke aisle',
+		categoryOf(aliased.stdout, 'flour') ?? 'uncategorised'
+	);
+
+	// A `//` comment must not be read as an ingredient, and must not stop the
+	// line above it from being read as one.
+	await writeFile(aislePath, '// my shop\n[smoke aisle]\nflour // the strong stuff\n');
+	const commented = await run(
+		['shopping-list', './Breakfast/Easy Pancakes.cook', '-f', 'json'],
+		work
+	);
+	check(
+		'// comments are ignored',
+		categoryOf(commented.stdout, 'flour') === 'smoke aisle',
+		categoryOf(commented.stdout, 'flour') ?? 'uncategorised'
+	);
+
+	// Which string the CLI matches: the raw ingredient name, or the display name
+	// cooklang's `@flour|plain flour{}` alias extension produces. The coverage
+	// audit compares against the raw name, so this is the assumption it rests on.
+	await writeFile(aislePath, '[smoke aisle]\nmilk\n');
+	const matched = await run(
+		['shopping-list', './Breakfast/Easy Pancakes.cook', '-f', 'json'],
+		work
+	);
+	check(
+		'ingredients match aisle.conf by their written name',
+		categoryOf(matched.stdout, 'milk') === 'smoke aisle',
+		categoryOf(matched.stdout, 'milk') ?? 'uncategorised'
+	);
+
+	// Anything unmatched must land in "other", which is what the shopping page
+	// offers an aisle picker for.
+	check(
+		'unmatched ingredients fall into "other"',
+		categoryOf(matched.stdout, 'flour') === 'other',
+		categoryOf(matched.stdout, 'flour') ?? 'no category'
+	);
+
+	await writeFile(aislePath, originalAisle);
+
 	// The pantry must be auto-discovered and subtracted. This is what the whole
 	// pantry feature rests on: the app only edits the file.
 	// The pantry file is replaced outright rather than appended to, so the

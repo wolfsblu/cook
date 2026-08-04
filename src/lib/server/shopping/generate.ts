@@ -13,7 +13,8 @@ import { CookCLIError, generateShoppingList } from '$lib/cooklang/cli.js';
 import { transformShoppingList } from '$lib/cooklang/transform.js';
 import type { ShoppingListDisplay } from '$lib/types/shopping-list.js';
 import { getIndex } from '../recipes/index.js';
-import { aisleMtimeMs, getAisleOrder, sortByAisle } from './aisle.js';
+import { getAisleOrder, sortByAisle } from './aisle.js';
+import { aisleStamp } from '../aisle/store.js';
 import { pantryMtimeMs } from '../pantry/store.js';
 import type { ResolvedSelection } from './store.js';
 
@@ -46,18 +47,24 @@ let inflight: { key: string; promise: Promise<GenerateResult> } | null = null;
  * Cache key covering everything the output depends on: the selections, the
  * recipes themselves, the aisle config, and the pantry. A pantry edit changes
  * its mtime, so stock changes invalidate the list without any explicit wiring.
+ *
+ * The aisle config contributes a stamp rather than a bare mtime, because
+ * assigning an aisle from this very page writes the file and redirects
+ * straight back here. On a mount with one-second mtime resolution that write
+ * can be invisible, and the page would re-render the list it was meant to
+ * regroup.
  */
 async function cacheKey(selections: readonly ResolvedSelection[]): Promise<string> {
-	const [index, aisleMtime, pantryMtime] = await Promise.all([
+	const [index, aisle, pantryMtime] = await Promise.all([
 		getIndex(),
-		aisleMtimeMs(),
+		aisleStamp(),
 		pantryMtimeMs()
 	]);
 
 	return createHash('sha1')
 		.update(JSON.stringify(selections.map((s) => [s.slug, s.scale])))
 		.update(String(index.maxMtimeMs))
-		.update(String(aisleMtime))
+		.update(aisle)
 		.update(String(pantryMtime))
 		.digest('hex');
 }

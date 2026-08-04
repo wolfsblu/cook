@@ -19,6 +19,9 @@ whose contents are deducted from that list.
   and runs timers.
 - **Shopping lists** — combine recipes at any scale, with quantities merged
   across them and grouped by supermarket aisle.
+- **Aisles** — edit `aisle.conf` from the app: arrange the aisles into the
+  order you walk the shop, see which ingredients in your library have no aisle
+  yet, and give one an aisle straight from the shopping list.
 - **Pantry** — track what you have in stock; anything listed is subtracted
   from the shopping list automatically.
 
@@ -71,12 +74,13 @@ npm run verify
 Individually: `npm run check`, `npm run lint`, `npm test`. `npm run format`
 applies Prettier.
 
-Tests cover the logic that is easy to get quietly wrong: the pantry file
-parser (which round-trips a real `pantry.conf` byte for byte, comments
-included), URL slugs, imgproxy URL signing, quantity formatting, aisle
-ordering and pantry unit comparisons. Behaviour that depends on the `cook`
-binary is checked by `scripts/smoke-cook.mjs` against the real thing rather
-than mocked.
+Tests cover the logic that is easy to get quietly wrong: the pantry and aisle
+file parsers (each of which round-trips its real config byte for byte,
+comments included, and the aisle one reorders a category without disturbing a
+line around it), URL slugs, imgproxy URL signing, quantity formatting, aisle
+ordering, aisle coverage and pantry unit comparisons. Behaviour that depends
+on the `cook` binary is checked by `scripts/smoke-cook.mjs` against the real
+thing rather than mocked.
 
 ## Building
 
@@ -169,6 +173,12 @@ docker compose run --rm app node scripts/smoke-cook.mjs
 
 It checks that recipes in subdirectories resolve, that `:n` scales them, that
 `--base-path` works, that recipe references expand, and — the two the pantry
-rests on — that `config/aisle.conf` and `config/pantry.conf` are discovered
-automatically, with stocked ingredients subtracted and unit mismatches warned
-about rather than silently ignored.
+and aisles pages rest on — that `config/aisle.conf` and `config/pantry.conf`
+are discovered automatically, with stocked ingredients subtracted and unit
+mismatches warned about rather than silently ignored.
+
+It also pins down the `aisle.conf` grammar the aisles page writes: that `|`
+separates alternative names and the first one is canonical, that `//` starts a
+comment, that ingredients are matched against the file by the name the recipe
+writes, and that anything unmatched lands in `other` — which is the group the
+shopping list offers an aisle picker for.

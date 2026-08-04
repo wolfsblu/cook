@@ -1,5 +1,6 @@
 import { fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
+import { readAisle } from '$lib/server/aisle/store.js';
 import { getShoppingList } from '$lib/server/shopping/generate.js';
 import {
 	clearSelections,
@@ -12,7 +13,12 @@ export const load: PageServerLoad = async () => {
 	const selections = await resolveSelections();
 	const { list, error, cliMissing, warnings } = await getShoppingList(selections);
 
-	return { selections, list, error, cliMissing, warnings };
+	// The aisles are only needed to populate the picker on anything that landed
+	// in "other". Reading them is a cached parse of a file the list generation
+	// has already stat'd.
+	const { categories } = await readAisle();
+
+	return { selections, list, error, cliMissing, warnings, aisleCategories: categories };
 };
 
 function readSlug(data: FormData): string | null {

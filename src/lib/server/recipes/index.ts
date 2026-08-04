@@ -11,7 +11,7 @@
  * mount, and recursive watches over SMB/NFS are unreliable and fail silently.
  */
 
-import { CooklangParser } from '@cooklang/cooklang';
+import { CooklangParser, ingredient_should_be_listed } from '@cooklang/cooklang';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { config } from '../config.js';
@@ -56,6 +56,13 @@ export interface RecipeEntry {
 	mtimeMs: number;
 	size: number;
 
+	/**
+	 * Distinct listed ingredient names, as written. Used by the aisle coverage
+	 * audit, which has to compare against the same strings the CLI matches
+	 * against aisle.conf. Not sent to the client.
+	 */
+	ingredientNames: string[];
+
 	/** Lowercased text used by search; not sent to the client. */
 	searchable: {
 		title: string;
@@ -96,6 +103,7 @@ interface ParsedRecipeFields {
 	course: string | null;
 	servings: number | null;
 	timeMinutes: number | null;
+	ingredientNames: string[];
 	searchable: RecipeEntry['searchable'];
 }
 
@@ -269,6 +277,21 @@ function parseRecipe(source: string, relPath: string): ParsedRecipeFields {
 		.map((ingredient: { name?: string }) => ingredient?.name ?? '')
 		.filter(Boolean);
 
+	// Only the ingredients that reach a shopping list, deduped. Hidden
+	// ingredients and recipe references are filtered out here but deliberately
+	// left in the search blob below: the audit would report them as unassigned
+	// aisles they can never appear in, while filtering them out of search would
+	// change which recipes a query finds.
+	const listed = [
+		...new Map(
+			(recipe.ingredients ?? [])
+				.filter((ingredient: unknown) => ingredient_should_be_listed(ingredient as never))
+				.map((ingredient: { name?: string }) => ingredient?.name ?? '')
+				.filter(Boolean)
+				.map((name: string) => [name.toLowerCase(), name])
+		).values()
+	];
+
 	return {
 		title,
 		description: recipe.description ?? null,
@@ -276,6 +299,7 @@ function parseRecipe(source: string, relPath: string): ParsedRecipeFields {
 		course: recipe.course ?? null,
 		servings: typeof recipe.servings === 'number' ? recipe.servings : null,
 		timeMinutes: totalTimeMinutes(recipe.time),
+		ingredientNames: listed,
 		searchable: {
 			title: title.toLowerCase(),
 			tags: tags.join(' ').toLowerCase(),

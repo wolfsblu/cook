@@ -75,7 +75,7 @@
 			</aside>
 
 			<div>
-				<ShoppingListDisplay shoppingList={data.list} />
+				<ShoppingListDisplay shoppingList={data.list} aisleCategories={data.aisleCategories} />
 			</div>
 		</div>
 	{/if}

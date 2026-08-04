@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import { CheckIcon, ShoppingCartIcon, XIcon } from '@lucide/svelte';
+	import { formatScale } from '$lib/utils/scale';
 	import Button from '$lib/components/ui/Button.svelte';
 
 	/**
@@ -33,7 +34,7 @@
 		inList && !scaleDiffers
 			? 'Remove from list'
 			: scaleDiffers
-				? `Update to ${scale}×`
+				? `Update to ${formatScale(scale)}×`
 				: 'Add to list'
 	);
 

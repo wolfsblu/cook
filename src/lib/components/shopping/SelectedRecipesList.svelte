@@ -2,6 +2,7 @@
 	import { enhance } from '$app/forms';
 	import { MinusIcon, PlusIcon, Trash2Icon } from '@lucide/svelte';
 	import type { ResolvedSelection } from '$lib/server/shopping/store';
+	import { formatScale } from '$lib/utils/scale';
 	import Button from '$lib/components/ui/Button.svelte';
 	import Card from '$lib/components/ui/Card.svelte';
 	import ConfirmDialog from '$lib/components/ui/ConfirmDialog.svelte';
@@ -69,7 +70,9 @@
 								</IconButton>
 							</form>
 
-							<span class="min-w-10 text-center text-sm tabular-nums">{selection.scale}×</span>
+							<span class="min-w-10 text-center text-sm tabular-nums">
+								{formatScale(selection.scale)}×
+							</span>
 
 							<form method="POST" action="?/setScale" use:enhance>
 								<input type="hidden" name="slug" value={selection.slug} />

@@ -14,7 +14,7 @@ vi.mock('./store.js', () => ({
 	}
 }));
 
-const { bulkAssign, bulkMove, bulkRemove } = await import('./actions.js');
+const { bulkAssign, bulkMove, bulkRemove, reorderCategories } = await import('./actions.js');
 
 /** A minimal RequestEvent carrying just the form fields an action reads. */
 function event(fields: Array<[string, string]>): RequestEvent {
@@ -82,6 +82,18 @@ describe('bulkRemove', () => {
 		);
 
 		expect(doc.entries.map((e) => e.name)).toEqual(['milk']);
+	});
+});
+
+describe('reorderCategories', () => {
+	beforeEach(() => {
+		doc = parseAisle('[a]\nx\n\n[b]\ny\n\n[c]\nz\n');
+	});
+
+	it('sets the category order from the newline-separated field', async () => {
+		await reorderCategories(event([['order', 'c\nb\na']]));
+
+		expect(doc.categories).toEqual(['c', 'b', 'a']);
 	});
 });
 

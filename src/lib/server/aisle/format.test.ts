@@ -14,6 +14,7 @@ import {
 	removeEntry,
 	removeTerm,
 	renameCategory,
+	reorderCategories,
 	serializeAisle,
 	upsertEntry
 } from './format';
@@ -362,5 +363,44 @@ describe('reordering categories', () => {
 		moveCategory(doc, 'b', 'up');
 
 		expect(lines(serializeAisle(doc)).slice(0, 2)).toEqual(['// my shop', '']);
+	});
+
+	it('sets the whole order from a complete list', () => {
+		const doc = parseAisle('[a]\nx\n\n[b]\ny\n\n[c]\nz\n');
+		reorderCategories(doc, ['c', 'a', 'b']);
+
+		expect(doc.categories).toEqual(['c', 'a', 'b']);
+	});
+
+	it('preserves every line of the real file when fully reversed', () => {
+		const doc = parseAisle(REAL_AISLE);
+		reorderCategories(doc, [...REAL_CATEGORIES].reverse());
+
+		const after = lines(serializeAisle(doc));
+		expect(after).toHaveLength(lines(REAL_AISLE).length);
+		expect([...after].sort()).toEqual([...lines(REAL_AISLE)].sort());
+		expect(doc.categories).toEqual([...REAL_CATEGORIES].reverse());
+	});
+
+	it('keeps the trailing newline whichever category lands last', () => {
+		const doc = parseAisle(REAL_AISLE);
+		reorderCategories(doc, [...REAL_CATEGORIES].reverse());
+
+		expect(serializeAisle(doc).endsWith('\n')).toBe(true);
+	});
+
+	it('ignores unknown names and keeps omitted categories at the end in order', () => {
+		const doc = parseAisle('[a]\nx\n\n[b]\ny\n\n[c]\nz\n');
+		reorderCategories(doc, ['c', 'ghost']);
+
+		// c goes first; a and b were not mentioned, so they follow in file order.
+		expect(doc.categories).toEqual(['c', 'a', 'b']);
+	});
+
+	it('is a round-trip no-op when given the existing order', () => {
+		const doc = parseAisle(REAL_AISLE);
+		reorderCategories(doc, [...REAL_CATEGORIES]);
+
+		expect(serializeAisle(doc)).toBe(REAL_AISLE);
 	});
 });

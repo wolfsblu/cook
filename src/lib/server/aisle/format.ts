@@ -465,6 +465,43 @@ export function moveCategory(doc: AisleDoc, name: string, direction: 'up' | 'dow
 	return doc;
 }
 
+/**
+ * Reorder the categories to match `order`, a complete list of names. Used by the
+ * drag-and-drop editor, which sends the whole new order rather than a swap.
+ *
+ * Names in `order` that the file does not have are ignored, and any category the
+ * list omits keeps its place at the end, so a stale page can never drop an
+ * aisle. Gaps stay in their positional slots for the same reason moveCategory
+ * leaves them there: carrying a block's trailing blank line with it would strip
+ * the file's final newline when that block lands last.
+ */
+export function reorderCategories(doc: AisleDoc, order: string[]): AisleDoc {
+	const { preamble, blocks } = decompose(doc);
+
+	const byName = new Map(blocks.map((block) => [key(block.name), block]));
+	const seen = new Set<string>();
+	const reordered: Block[] = [];
+
+	for (const name of order) {
+		const block = byName.get(key(name));
+		if (block && !seen.has(key(name))) {
+			reordered.push(block);
+			seen.add(key(name));
+		}
+	}
+
+	// Anything the incoming order did not mention keeps its original relative
+	// position, appended after the named ones.
+	for (const block of blocks) {
+		if (!seen.has(key(block.name))) reordered.push(block);
+	}
+
+	const gaps = blocks.map((block) => block.gap);
+	doc.lines = recompose(preamble, reordered, gaps);
+	reindex(doc);
+	return doc;
+}
+
 /** Remove a category and everything under it. */
 export function removeCategory(doc: AisleDoc, name: string): AisleDoc {
 	const { preamble, blocks } = decompose(doc);

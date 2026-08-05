@@ -18,6 +18,7 @@ import {
 	removeEntry,
 	removeTerm,
 	renameCategory as renameCategoryLine,
+	reorderCategories as reorderCategoriesLines,
 	upsertEntry
 } from './format.js';
 import { readAisle, updateAisle } from './store.js';
@@ -356,6 +357,28 @@ export const moveCategory = async ({ request }: RequestEvent) => {
 
 	await updateAisle((doc) => {
 		moveCategoryLine(doc, name, direction);
+	});
+
+	return { success: true };
+};
+
+/**
+ * Set the whole category order at once, from the drag-and-drop editor. The order
+ * arrives as newline-separated names in a single field; a category name is a
+ * single line in the file, so it can never contain the separator.
+ */
+export const reorderCategories = async ({ request }: RequestEvent) => {
+	const data = await request.formData();
+	const raw = str(data, 'order');
+	if (!raw) return fail(400, { message: 'An order is required' });
+
+	const order = raw
+		.split('\n')
+		.map((name) => name.trim())
+		.filter(Boolean);
+
+	await updateAisle((doc) => {
+		reorderCategoriesLines(doc, order);
 	});
 
 	return { success: true };

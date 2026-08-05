@@ -21,7 +21,12 @@
 	JavaScript this is a plain POST and a 303; with it, enhance follows the
 	redirect via goto.
 -->
-<form method="POST" action="/aisles?/assign" use:enhance class="flex shrink-0 items-center gap-1.5">
+<form
+	method="POST"
+	action="/aisles/unassigned?/assign"
+	use:enhance
+	class="flex shrink-0 items-center gap-1.5"
+>
 	<input type="hidden" name="name" value={itemName} />
 	<input type="hidden" name="returnTo" value={returnTo} />
 

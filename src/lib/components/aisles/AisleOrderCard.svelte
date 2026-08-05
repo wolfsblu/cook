@@ -14,11 +14,10 @@
 </script>
 
 <!--
-	Reordering lives here rather than in the sidebar. Below `lg` the aisle list
-	is a scrolling chip strip with no room for a pair of arrows per row, and
-	putting it behind a dialog would mean it stopped working without JavaScript.
-	It also deserves the space: this list is the order the shopping list groups
-	by, which is the reason to edit the file at all.
+	The Manage tab's core control: this list is the order the shopping list
+	groups by, which is the reason to edit the file at all. Reordering stays a
+	pair of up/down forms rather than drag-and-drop so it works without
+	JavaScript, in keeping with the rest of the page.
 -->
 <Card variant="outline" class="p-4">
 	<h2 class="text-fg font-semibold">Aisle order</h2>

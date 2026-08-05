@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { PencilIcon, Trash2Icon } from '@lucide/svelte';
+	import type { SvelteSet } from 'svelte/reactivity';
 	import type { AisleEntryView } from '../../../routes/aisles/+page.server';
 	import Badge from '$lib/components/ui/Badge.svelte';
 	import IconButton from '$lib/components/ui/IconButton.svelte';
@@ -9,12 +10,40 @@
 		entry: AisleEntryView;
 		showCategory: boolean;
 		onedit: (entry: AisleEntryView) => void;
+		selectable?: boolean;
+		selected?: SvelteSet<string>;
+		formId?: string;
 	}
 
-	const { entry, showCategory, onedit }: Props = $props();
+	const { entry, showCategory, onedit, selectable = false, selected, formId }: Props = $props();
+
+	const checked = $derived(selected?.has(entry.name) ?? false);
+
+	function toggle(on: boolean) {
+		if (!selected) return;
+		if (on) selected.add(entry.name);
+		else selected.delete(entry.name);
+	}
 </script>
 
 <tr class="hover:bg-surface-muted/60 transition-colors" data-testid="aisle-entry">
+	{#if selectable}
+		<td class="py-2 pr-2 align-top">
+			<!-- The real bulk-form input: associated with the sticky bar's form by
+			     id, so it submits even though it lives out here in the row. -->
+			<input
+				type="checkbox"
+				name="name"
+				value={entry.name}
+				form={formId}
+				{checked}
+				onchange={(event) => toggle(event.currentTarget.checked)}
+				class="border-border text-accent focus:ring-accent mt-1 size-4 rounded"
+				aria-label="Select {entry.name}"
+			/>
+		</td>
+	{/if}
+
 	<td class="py-2 pr-2">
 		<div class="min-w-0">
 			<div class="flex flex-wrap items-center gap-2">

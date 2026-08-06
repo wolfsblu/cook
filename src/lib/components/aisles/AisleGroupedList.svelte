@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { AisleEntryView } from '../../../routes/aisles/+page.server';
+	import type { AisleEntryView } from '../../../routes/aisles/ingredients/+page.server';
 	import Card from '$lib/components/ui/Card.svelte';
 	import AisleEntryTable from './AisleEntryTable.svelte';
 
@@ -20,7 +20,7 @@
 	});
 
 	function href(category: string): string {
-		return `/aisles?category=${encodeURIComponent(category)}`;
+		return `/aisles/ingredients?category=${encodeURIComponent(category)}`;
 	}
 </script>
 

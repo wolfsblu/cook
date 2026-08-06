@@ -28,8 +28,6 @@
 	type Drag = { name: string; grabOffsetY: number; pointerY: number; left: number; width: number };
 	let drag = $state<Drag | null>(null);
 
-	const draggingIndex = $derived(drag ? order.indexOf(drag.name) : -1);
-
 	function same(a: string[], b: string[]): boolean {
 		return a.length === b.length && a.every((value, index) => value === b[index]);
 	}
@@ -117,7 +115,13 @@
 	}
 
 	function href(name: string): string {
-		return `/aisles?category=${encodeURIComponent(name)}`;
+		return `/aisles/ingredients?category=${encodeURIComponent(name)}`;
+	}
+
+	/** Spelled out: a bare number here read as an unexplained code. */
+	function ingredients(name: string): string {
+		const count = counts[name] ?? 0;
+		return `${count} ${count === 1 ? 'ingredient' : 'ingredients'}`;
 	}
 </script>
 
@@ -153,7 +157,7 @@
 	{/if}
 
 	<ol bind:this={listEl} class="divide-border divide-y">
-		{#each order as name, index (name)}
+		{#each order as name (name)}
 			<li
 				data-name={name}
 				animate:flip={{ duration: 180 }}
@@ -169,10 +173,6 @@
 					<GripVerticalIcon class="size-4" />
 				</button>
 
-				<span class="text-fg-subtle w-6 shrink-0 text-right text-sm tabular-nums">
-					{index + 1}
-				</span>
-
 				<a
 					href={href(name)}
 					class="text-fg ml-1 min-w-0 flex-1 truncate font-medium capitalize hover:underline"
@@ -180,15 +180,22 @@
 					{name}
 				</a>
 
-				<span class="text-fg-muted shrink-0 text-xs tabular-nums">
-					{counts[name] ?? 0}
-				</span>
+				<span class="text-fg-muted shrink-0 text-xs tabular-nums">{ingredients(name)}</span>
 
 				<IconButton size="sm" label="Rename {name}" onclick={() => onrename(name)}>
 					<PencilIcon class="size-4" />
 				</IconButton>
 
-				<form method="POST" action="?/removeCategory" use:enhance>
+				<!-- The reason Remove is disabled goes on the form: a disabled button
+				     never gets the hover that would show its own tooltip. -->
+				<form
+					method="POST"
+					action="?/removeCategory"
+					use:enhance
+					title={(counts[name] ?? 0) > 0
+						? 'Move or remove its ingredients before deleting this aisle'
+						: undefined}
+				>
 					<input type="hidden" name="name" value={name} />
 					<IconButton
 						type="submit"
@@ -234,11 +241,8 @@
 			<span class="text-fg-subtle flex size-8 shrink-0 items-center justify-center">
 				<GripVerticalIcon class="size-4" />
 			</span>
-			<span class="text-fg-subtle w-6 shrink-0 text-right text-sm tabular-nums">
-				{draggingIndex + 1}
-			</span>
 			<span class="text-fg ml-1 min-w-0 flex-1 truncate font-medium capitalize">{drag.name}</span>
-			<span class="text-fg-muted mr-2 shrink-0 text-xs tabular-nums">{counts[drag.name] ?? 0}</span>
+			<span class="text-fg-muted mr-2 shrink-0 text-xs tabular-nums">{ingredients(drag.name)}</span>
 		</div>
 	</div>
 {/if}

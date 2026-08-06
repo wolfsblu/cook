@@ -10,11 +10,12 @@
 
 	// Route-backed tabs: plain links, so back/forward and no-JS both work, and the
 	// active one is decided by the pathname rather than a query param -- browsing
-	// a single aisle (?category=) keeps "By aisle" selected.
+	// a single aisle (?category=) keeps "Ingredients" selected. Managing the
+	// aisles comes first because everything else here is grouped by them.
 	const tabs = [
-		{ href: '/aisles', label: 'By aisle', icon: FolderIcon },
-		{ href: '/aisles/unassigned', label: 'Unassigned', icon: CircleHelpIcon },
-		{ href: '/aisles/manage', label: 'Manage aisles', icon: SlidersHorizontalIcon }
+		{ href: '/aisles', label: 'Manage aisles', icon: SlidersHorizontalIcon },
+		{ href: '/aisles/ingredients', label: 'Ingredients', icon: FolderIcon },
+		{ href: '/aisles/unassigned', label: 'Unassigned', icon: CircleHelpIcon }
 	];
 
 	const current = $derived(page.url.pathname);

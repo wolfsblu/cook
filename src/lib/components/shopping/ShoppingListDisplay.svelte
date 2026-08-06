@@ -85,8 +85,7 @@
 					{#if placeable}
 						<p class="text-fg-muted mb-2 text-sm">
 							Not in your <a href="/aisles/unassigned" class="link">aisles</a> yet. Give each one an aisle
-							and it
-							will be grouped with the rest next time.
+							and it will be grouped with the rest next time.
 						</p>
 					{/if}
 
